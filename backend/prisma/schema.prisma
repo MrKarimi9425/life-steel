@@ -1,0 +1,424 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum AdminStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum TextDirection {
+  RTL
+  LTR
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum TranslationStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum MediaKind {
+  IMAGE
+  VIDEO
+}
+
+enum MediaSource {
+  UPLOAD
+  EXTERNAL
+}
+
+enum MediaProcessingStatus {
+  PENDING
+  READY
+  FAILED
+}
+
+enum MediaVariantKind {
+  THUMBNAIL
+  CARD
+  LARGE
+  OPTIMIZED
+}
+
+enum AttributeType {
+  SHORT_TEXT
+  LONG_TEXT
+  NUMBER
+  BOOLEAN
+  SINGLE_SELECT
+  MULTI_SELECT
+  COLOR
+}
+
+model Admin {
+  id                 String         @id @default(cuid())
+  firstName          String         @map("first_name") @db.VarChar(80)
+  lastName           String         @map("last_name") @db.VarChar(100)
+  phoneNumber        String         @unique @map("phone_number") @db.VarChar(20)
+  passwordHash       String         @map("password_hash") @db.VarChar(255)
+  isOwner            Boolean        @default(false) @map("is_owner")
+  mustChangePassword Boolean        @default(true) @map("must_change_password")
+  status             AdminStatus    @default(ACTIVE)
+  lastLoginAt        DateTime?      @map("last_login_at")
+  passwordChangedAt  DateTime?      @map("password_changed_at")
+  deletedAt          DateTime?      @map("deleted_at")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  sessions           AdminSession[]
+
+  @@index([status, deletedAt])
+  @@map("admins")
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  adminId   String    @map("admin_id")
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  userAgent String?   @map("user_agent") @db.VarChar(500)
+  ipAddress String?   @map("ip_address") @db.VarChar(64)
+  expiresAt DateTime  @map("expires_at")
+  revokedAt DateTime? @map("revoked_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  admin     Admin     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId, revokedAt, expiresAt])
+  @@map("admin_sessions")
+}
+
+model Language {
+  id                    String                             @id @default(cuid())
+  code                  String                             @unique @db.VarChar(12)
+  name                  String                             @db.VarChar(80)
+  nativeName            String                             @map("native_name") @db.VarChar(80)
+  direction             TextDirection
+  isDefault             Boolean                            @default(false) @map("is_default")
+  isActive              Boolean                            @default(true) @map("is_active")
+  isRequiredForPublish  Boolean                            @default(false) @map("is_required_for_publish")
+  displayOrder          Int                                @default(0) @map("display_order")
+  createdAt             DateTime                           @default(now()) @map("created_at")
+  updatedAt             DateTime                           @updatedAt @map("updated_at")
+  phraseTranslations    InterfacePhraseTranslation[]
+  mediaTranslations     MediaTranslation[]
+  categoryTranslations  ProductCategoryTranslation[]
+  attributeTranslations AttributeDefinitionTranslation[]
+  optionTranslations    AttributeOptionTranslation[]
+  productTranslations   ProductTranslation[]
+  valueTranslations     ProductAttributeValueTranslation[]
+
+  @@index([isActive, displayOrder])
+  @@map("languages")
+}
+
+model InterfacePhrase {
+  id           String                       @id @default(cuid())
+  key          String                       @db.VarChar(160)
+  namespace    String                       @default("common") @db.VarChar(80)
+  description  String?                      @db.VarChar(500)
+  createdAt    DateTime                     @default(now()) @map("created_at")
+  updatedAt    DateTime                     @updatedAt @map("updated_at")
+  translations InterfacePhraseTranslation[]
+
+  @@unique([namespace, key])
+  @@map("interface_phrases")
+}
+
+model InterfacePhraseTranslation {
+  phraseId   String          @map("phrase_id")
+  languageId String          @map("language_id")
+  value      String          @db.Text
+  phrase     InterfacePhrase @relation(fields: [phraseId], references: [id], onDelete: Cascade)
+  language   Language        @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([phraseId, languageId])
+  @@index([languageId])
+  @@map("interface_phrase_translations")
+}
+
+model MediaAsset {
+  id               String                @id @default(cuid())
+  kind             MediaKind
+  source           MediaSource
+  path             String?               @db.VarChar(1000)
+  externalUrl      String?               @map("external_url") @db.VarChar(2000)
+  originalFileName String?               @map("original_file_name") @db.VarChar(255)
+  mimeType         String?               @map("mime_type") @db.VarChar(160)
+  sizeBytes        BigInt?               @map("size_bytes")
+  width            Int?
+  height           Int?
+  durationSeconds  Int?                  @map("duration_seconds")
+  processingStatus MediaProcessingStatus @default(PENDING) @map("processing_status")
+  processingError  String?               @map("processing_error") @db.Text
+  createdAt        DateTime              @default(now()) @map("created_at")
+  updatedAt        DateTime              @updatedAt @map("updated_at")
+  variants         MediaVariant[]
+  translations     MediaTranslation[]
+  productMedia     ProductMedia[]
+  productCovers    Product[]             @relation("ProductCover")
+  categoryImages   ProductCategory[]     @relation("ProductCategoryImage")
+
+  @@index([kind, processingStatus])
+  @@map("media_assets")
+}
+
+model MediaVariant {
+  id        String           @id @default(cuid())
+  mediaId   String           @map("media_id")
+  kind      MediaVariantKind
+  path      String           @db.VarChar(1000)
+  mimeType  String           @map("mime_type") @db.VarChar(160)
+  sizeBytes BigInt           @map("size_bytes")
+  width     Int
+  height    Int
+  media     MediaAsset       @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([mediaId, kind])
+  @@map("media_variants")
+}
+
+model MediaTranslation {
+  mediaId    String     @map("media_id")
+  languageId String     @map("language_id")
+  title      String?    @db.VarChar(255)
+  altText    String?    @map("alt_text") @db.VarChar(500)
+  caption    String?    @db.Text
+  media      MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  language   Language   @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
+  @@id([mediaId, languageId])
+  @@index([languageId])
+  @@map("media_translations")
+}
+
+model ProductCategory {
+  id           String                       @id @default(cuid())
+  isActive     Boolean                      @default(true) @map("is_active")
+  displayOrder Int                          @default(0) @map("display_order")
+  imageId      String?                      @map("image_id")
+  createdAt    DateTime                     @default(now()) @map("created_at")
+  updatedAt    DateTime                     @updatedAt @map("updated_at")
+  image        MediaAsset?                  @relation("ProductCategoryImage", fields: [imageId], references: [id], onDelete: SetNull)
+  translations ProductCategoryTranslation[]
+  attributes   CategoryAttribute[]
+  products     ProductCategoryAssignment[]
+
+  @@index([isActive, displayOrder])
+  @@map("product_categories")
+}
+
+model ProductCategoryTranslation {
+  categoryId     String          @map("category_id")
+  languageId     String          @map("language_id")
+  title          String          @db.VarChar(180)
+  slug           String          @db.VarChar(180)
+  description    String?         @db.Text
+  seoTitle       String?         @map("seo_title") @db.VarChar(255)
+  seoDescription String?         @map("seo_description") @db.VarChar(500)
+  category       ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  language       Language        @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([categoryId, languageId])
+  @@unique([languageId, slug])
+  @@map("product_category_translations")
+}
+
+model AttributeDefinition {
+  id               String                           @id @default(cuid())
+  type             AttributeType
+  isFilterable     Boolean                          @default(false) @map("is_filterable")
+  isVisible        Boolean                          @default(true) @map("is_visible")
+  isActive         Boolean                          @default(true) @map("is_active")
+  allowCustomValue Boolean                          @default(false) @map("allow_custom_value")
+  displayOrder     Int                              @default(0) @map("display_order")
+  createdAt        DateTime                         @default(now()) @map("created_at")
+  updatedAt        DateTime                         @updatedAt @map("updated_at")
+  translations     AttributeDefinitionTranslation[]
+  options          AttributeOption[]
+  categories       CategoryAttribute[]
+  values           ProductAttributeValue[]
+
+  @@index([isActive, displayOrder])
+  @@map("attribute_definitions")
+}
+
+model AttributeDefinitionTranslation {
+  attributeId String              @map("attribute_id")
+  languageId  String              @map("language_id")
+  name        String              @db.VarChar(180)
+  description String?             @db.VarChar(500)
+  unitLabel   String?             @map("unit_label") @db.VarChar(80)
+  attribute   AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  language    Language            @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([attributeId, languageId])
+  @@map("attribute_definition_translations")
+}
+
+model AttributeOption {
+  id           String                        @id @default(cuid())
+  attributeId  String                        @map("attribute_id")
+  colorHex     String?                       @map("color_hex") @db.VarChar(9)
+  isActive     Boolean                       @default(true) @map("is_active")
+  displayOrder Int                           @default(0) @map("display_order")
+  attribute    AttributeDefinition           @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  translations AttributeOptionTranslation[]
+  values       ProductAttributeOptionValue[]
+
+  @@index([attributeId, isActive, displayOrder])
+  @@map("attribute_options")
+}
+
+model AttributeOptionTranslation {
+  optionId   String          @map("option_id")
+  languageId String          @map("language_id")
+  label      String          @db.VarChar(180)
+  option     AttributeOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  language   Language        @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([optionId, languageId])
+  @@map("attribute_option_translations")
+}
+
+model CategoryAttribute {
+  categoryId   String              @map("category_id")
+  attributeId  String              @map("attribute_id")
+  isRequired   Boolean             @default(false) @map("is_required")
+  displayOrder Int                 @default(0) @map("display_order")
+  category     ProductCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  attribute    AttributeDefinition @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+
+  @@id([categoryId, attributeId])
+  @@index([attributeId])
+  @@map("category_attributes")
+}
+
+model Product {
+  id              String                      @id @default(cuid())
+  sku             String?                     @unique @db.VarChar(100)
+  status          ContentStatus               @default(DRAFT)
+  coverMediaId    String?                     @map("cover_media_id")
+  isFeatured      Boolean                     @default(false) @map("is_featured")
+  displayOrder    Int                         @default(0) @map("display_order")
+  publishedAt     DateTime?                   @map("published_at")
+  deletedAt       DateTime?                   @map("deleted_at")
+  createdAt       DateTime                    @default(now()) @map("created_at")
+  updatedAt       DateTime                    @updatedAt @map("updated_at")
+  coverMedia      MediaAsset?                 @relation("ProductCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  translations    ProductTranslation[]
+  categories      ProductCategoryAssignment[]
+  media           ProductMedia[]
+  attributeValues ProductAttributeValue[]
+  relatedFrom     RelatedProduct[]            @relation("RelatedProductSource")
+  relatedTo       RelatedProduct[]            @relation("RelatedProductTarget")
+
+  @@index([status, deletedAt, displayOrder])
+  @@index([isFeatured, status])
+  @@map("products")
+}
+
+model ProductTranslation {
+  productId      String            @map("product_id")
+  languageId     String            @map("language_id")
+  title          String?           @db.VarChar(255)
+  slug           String?           @db.VarChar(200)
+  summary        String?           @db.Text
+  description    String?           @db.LongText
+  seoTitle       String?           @map("seo_title") @db.VarChar(255)
+  seoDescription String?           @map("seo_description") @db.VarChar(500)
+  status         TranslationStatus @default(DRAFT)
+  product        Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  language       Language          @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([productId, languageId])
+  @@unique([languageId, slug])
+  @@index([languageId, status, title])
+  @@map("product_translations")
+}
+
+model ProductCategoryAssignment {
+  productId  String          @map("product_id")
+  categoryId String          @map("category_id")
+  isPrimary  Boolean         @default(false) @map("is_primary")
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category   ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@id([productId, categoryId])
+  @@index([categoryId, isPrimary])
+  @@map("product_category_assignments")
+}
+
+model ProductMedia {
+  productId    String     @map("product_id")
+  mediaId      String     @map("media_id")
+  displayOrder Int        @default(0) @map("display_order")
+  product      Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  media        MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([productId, mediaId])
+  @@index([productId, displayOrder])
+  @@map("product_media")
+}
+
+model ProductAttributeValue {
+  id              String                             @id @default(cuid())
+  productId       String                             @map("product_id")
+  attributeId     String                             @map("attribute_id")
+  numberValue     Decimal?                           @map("number_value") @db.Decimal(18, 4)
+  booleanValue    Boolean?                           @map("boolean_value")
+  rawValue        Json?                              @map("raw_value")
+  isCustom        Boolean                            @default(false) @map("is_custom")
+  displayOrder    Int                                @default(0) @map("display_order")
+  product         Product                            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attribute       AttributeDefinition                @relation(fields: [attributeId], references: [id], onDelete: Restrict)
+  translations    ProductAttributeValueTranslation[]
+  selectedOptions ProductAttributeOptionValue[]
+
+  @@unique([productId, attributeId])
+  @@index([attributeId, numberValue])
+  @@index([attributeId, booleanValue])
+  @@map("product_attribute_values")
+}
+
+model ProductAttributeValueTranslation {
+  valueId    String                @map("value_id")
+  languageId String                @map("language_id")
+  textValue  String                @map("text_value") @db.Text
+  value      ProductAttributeValue @relation(fields: [valueId], references: [id], onDelete: Cascade)
+  language   Language              @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([valueId, languageId])
+  @@map("product_attribute_value_translations")
+}
+
+model ProductAttributeOptionValue {
+  valueId  String                @map("value_id")
+  optionId String                @map("option_id")
+  value    ProductAttributeValue @relation(fields: [valueId], references: [id], onDelete: Cascade)
+  option   AttributeOption       @relation(fields: [optionId], references: [id], onDelete: Restrict)
+
+  @@id([valueId, optionId])
+  @@index([optionId])
+  @@map("product_attribute_option_values")
+}
+
+model RelatedProduct {
+  productId        String  @map("product_id")
+  relatedProductId String  @map("related_product_id")
+  displayOrder     Int     @default(0) @map("display_order")
+  product          Product @relation("RelatedProductSource", fields: [productId], references: [id], onDelete: Cascade)
+  relatedProduct   Product @relation("RelatedProductTarget", fields: [relatedProductId], references: [id], onDelete: Cascade)
+
+  @@id([productId, relatedProductId])
+  @@map("related_products")
+}

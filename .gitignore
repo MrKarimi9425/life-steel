@@ -1,0 +1,20 @@
+admin/node_modules/
+admin/dist/
+admin/.env
+admin/*.log
+
+backend/node_modules/
+backend/dist/
+backend/coverage/
+backend/public/
+backend/storage/
+backend/.env
+backend/*.log
+
+web/*.log
+
+*.tsbuildinfo
+
+# Local generated previews and temporary artifacts
+.artifacts/
+.responsive-table-qa/

@@ -1,0 +1,13 @@
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+public/uploads/avatars/
+public/uploads/projects/
+public/uploads/educations/
+public/uploads/experiences/
+src/generated/prisma/

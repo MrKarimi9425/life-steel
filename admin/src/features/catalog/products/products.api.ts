@@ -1,0 +1,90 @@
+import { apiClient } from '@/lib/http/api-client'
+import type { ApiResponse } from '@/lib/http/api.types'
+import type {
+    AttributeValueForm,
+    ProductBaseForm,
+    ProductDetail,
+    ProductListResult,
+} from './products.types'
+
+export const productsApi = {
+    async list(params: URLSearchParams) {
+        const response = await apiClient.get<ApiResponse<ProductListResult>>(
+            `catalog/products?${params}`,
+        )
+        return response.data.data ?? { items: [], total: 0, pageSize: 20 }
+    },
+    async detail(id: string) {
+        const response = await apiClient.get<ApiResponse<ProductDetail>>(
+            `catalog/products/${id}`,
+        )
+        if (!response.data.data) throw new Error('محصول پیدا نشد.')
+        return response.data.data
+    },
+    create(form: ProductBaseForm) {
+        return apiClient.post('catalog/products', {
+            ...form,
+            sku: form.sku || undefined,
+            coverMediaId: undefined,
+            mediaIds: [],
+            relatedProductIds: [],
+            attributeValues: [],
+            translations: form.translations.map((item) => ({
+                ...item,
+                title: item.title?.trim() || undefined,
+                slug: item.slug?.trim() || undefined,
+            })),
+        })
+    },
+    updateBase(id: string, form: ProductBaseForm) {
+        return apiClient.patch(`catalog/products/${id}`, {
+            ...form,
+            sku: form.sku || undefined,
+            translations: form.translations.map((item) => ({
+                ...item,
+                title: item.title?.trim() || undefined,
+                slug: item.slug?.trim() || undefined,
+            })),
+        })
+    },
+    updateAttributes(id: string, attributeValues: AttributeValueForm[]) {
+        return apiClient.patch(`catalog/products/${id}`, {
+            attributeValues: attributeValues.map((value) => ({
+                ...value,
+                numberValue: Number.isFinite(value.numberValue)
+                    ? value.numberValue
+                    : undefined,
+                customDefinition: value.customDefinition
+                    ? {
+                          ...value.customDefinition,
+                          translations:
+                              value.customDefinition.translations.filter(
+                                  (item) => item.name.trim(),
+                              ),
+                      }
+                    : undefined,
+            })),
+        })
+    },
+    updateMedia(id: string, mediaIds: string[], coverMediaId: string) {
+        return apiClient.patch(`catalog/products/${id}`, {
+            mediaIds,
+            coverMediaId: coverMediaId || null,
+        })
+    },
+    deleteMedia(productId: string, mediaId: string) {
+        return apiClient.delete<ApiResponse<{
+            removedFromStorage: boolean
+            coverMediaId: string | null
+        }>>(`catalog/products/${productId}/media/${mediaId}`)
+    },
+    reorder(ids: string[]) {
+        return apiClient.put('catalog/products/order', { ids })
+    },
+    archive(id: string) {
+        return apiClient.post(`catalog/products/${id}/archive`)
+    },
+    remove(id: string) {
+        return apiClient.delete(`catalog/products/${id}`)
+    },
+}

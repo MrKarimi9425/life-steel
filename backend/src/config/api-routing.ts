@@ -1,0 +1,12 @@
+import { type INestApplication, VersioningType } from '@nestjs/common';
+
+export const API_GLOBAL_PREFIX = 'api';
+export const API_VERSION = '1';
+export const API_BASE_PATH = `/${API_GLOBAL_PREFIX}/v${API_VERSION}`;
+
+export function configureApiRouting(app: INestApplication): void {
+  app.setGlobalPrefix(API_GLOBAL_PREFIX);
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
+}
