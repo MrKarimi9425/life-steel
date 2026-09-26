@@ -1,3 +1,6 @@
 export { CategoriesPage } from './pages/CategoriesPage'
 export { AttributesPage } from './pages/AttributesPage'
 export { ProductsPage } from './pages/ProductsPage'
+export { LanguageTabs } from './components/LanguageTabs'
+export { default as ScopedMediaPicker } from './components/ScopedMediaPicker'
+export { default as MediaPicker } from './components/MediaPicker'

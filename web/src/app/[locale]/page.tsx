@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import { getProducts } from "@/lib/api";
+import { blogCopy } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           <span className="eyebrow">LIFE STEEL / STAINLESS HEATING</span>
           <h1>{isFa ? "گرمای ماندگار، با فرم دقیق استیل" : "Lasting warmth, shaped in stainless steel"}</h1>
           <p>{isFa ? "تولید تخصصی حوله خشک کن و رادیاتور استیل برای فضاهای معاصر؛ با تمرکز بر کیفیت ساخت، دوام و جزئیات." : "Specialized stainless steel radiators and towel warmers made for contemporary spaces."}</p>
-          <div className="hero-actions"><Link className="button primary" href={`/${locale}/products`}>{isFa ? "مشاهده محصولات" : "Explore products"}</Link><a className="button secondary" href="#contact">{isFa ? "مشاوره و تماس" : "Contact us"}</a></div>
+          <div className="hero-actions"><Link className="button primary" href={`/${locale}/products`}>{isFa ? "مشاهده محصولات" : "Explore products"}</Link><Link className="button secondary" href={`/${locale}/blog`}>{blogCopy(locale).blog}</Link><a className="button secondary" href="#contact">{isFa ? "مشاوره و تماس" : "Contact us"}</a></div>
         </div>
         <div className="hero-visual"><div className="radiator-lines">{Array.from({ length: 7 }).map((_, index) => <span key={index} />)}</div><div className="steel-badge">304<br /><small>STAINLESS</small></div></div>
       </section>

@@ -48,6 +48,7 @@ export class CatalogService {
   }
 
   async createCategory(input: CreateCategoryDto) {
+    if (input.imageId) await this.media.assertNotBlogMedia([input.imageId]);
     await this.assertRequiredTranslations(input.translations);
     this.assertDistinctLanguages(input.translations);
     try {
@@ -69,6 +70,7 @@ export class CatalogService {
   }
 
   async updateCategory(id: string, input: UpdateCategoryDto) {
+    if (input.imageId) await this.media.assertNotBlogMedia([input.imageId]);
     await this.requireCategory(id);
     if (input.translations) {
       await this.assertRequiredTranslations(input.translations);
@@ -568,7 +570,8 @@ export class CatalogService {
     const remaining = product.media.filter((item) => item.mediaId !== mediaId);
     const nextCoverId =
       product.coverMediaId === mediaId
-        ? (remaining.find((item) => item.media.kind === 'IMAGE')?.mediaId ?? null)
+        ? (remaining.find((item) => item.media.kind === 'IMAGE')?.mediaId ??
+          null)
         : product.coverMediaId;
     await this.prisma.product.update({
       where: { id: productId },
@@ -947,6 +950,11 @@ export class CatalogService {
     if (input.relatedProductIds.includes('')) {
       throw new BadRequestException('محصول مرتبط معتبر نیست.');
     }
+    const mediaIds = [
+      ...input.mediaIds,
+      ...(input.coverMediaId ? [input.coverMediaId] : []),
+    ];
+    if (mediaIds.length) await this.media.assertNotBlogMedia(mediaIds);
   }
 
   private assertPrimaryCategory(

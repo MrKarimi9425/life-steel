@@ -98,10 +98,10 @@ export function AdminsPage() {
                 header: 'نام',
                 id: 'name',
                 cell: ({ row }) => (
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">
-                        {row.original.firstName} {row.original.lastName}
+                    <div className="flex items-center gap-2 font-semibold text-gray-900 dark:text-gray-100">
+                        <span>{row.original.firstName} {row.original.lastName}</span>
                         {row.original.isOwner && (
-                            <span className="mr-2 text-xs text-primary">
+                            <span className="shrink-0 text-xs text-primary">
                                 مدیر اصلی
                             </span>
                         )}

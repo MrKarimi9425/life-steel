@@ -23,9 +23,14 @@ type TranslationForm = {
 type Props = {
     asset: MediaAsset | null
     onClose: () => void
+    onSaved?: (asset: MediaAsset) => void
 }
 
-export default function MediaTranslationDialog({ asset, onClose }: Props) {
+export default function MediaTranslationDialog({
+    asset,
+    onClose,
+    onSaved,
+}: Props) {
     const client = useQueryClient()
     const [activeLanguageId, setActiveLanguageId] = useState('')
     const [translations, setTranslations] = useState<TranslationForm[]>([])
@@ -76,6 +81,7 @@ export default function MediaTranslationDialog({ asset, onClose }: Props) {
         onSuccess: (response) => {
             const updated = response.data.data
             if (updated) {
+                onSaved?.(updated)
                 client.setQueryData<MediaAsset[]>(['media'], (current) =>
                     (current ?? []).map((item) =>
                         item.id === updated.id ? updated : item,

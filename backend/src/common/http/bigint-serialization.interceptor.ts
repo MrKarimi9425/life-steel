@@ -17,6 +17,7 @@ export class BigIntSerializationInterceptor implements NestInterceptor {
 
   private serialize(value: unknown): unknown {
     if (typeof value === 'bigint') return value.toString();
+    if (value instanceof Date) return value.toJSON();
     if (Array.isArray(value)) return value.map((item) => this.serialize(item));
     if (value && typeof value === 'object') {
       return Object.fromEntries(

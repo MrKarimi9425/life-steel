@@ -5,6 +5,7 @@ import { DashboardPage } from '@/features/dashboard'
 import { AdminsPage } from '@/features/admins'
 import { InterfacePhrasesPage, LanguagesPage } from '@/features/languages'
 import { AttributesPage, CategoriesPage, ProductsPage } from '@/features/catalog'
+import { ArticlesPage, BlogCategoriesPage, BlogTagsPage } from '@/features/blog'
 import { ProtectedRoute } from './ProtectedRoute'
 import { DashboardRouteFrame } from '@/components/layouts/DashboardLayout'
 
@@ -25,6 +26,9 @@ export function AppRouter() {
                     <Route path="products" element={<ProductsPage />} />
                     <Route path="product-categories" element={<CategoriesPage />} />
                     <Route path="product-attributes" element={<AttributesPage />} />
+                    <Route path="blog/articles" element={<ArticlesPage />} />
+                    <Route path="blog/categories" element={<BlogCategoriesPage />} />
+                    <Route path="blog/tags" element={<BlogTagsPage />} />
                     <Route path="languages" element={<LanguagesPage />} />
                     <Route path="interface-phrases" element={<InterfacePhrasesPage />} />
                     <Route element={<OwnerRoute />}>

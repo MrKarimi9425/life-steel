@@ -35,7 +35,10 @@ describe('CatalogService product rules', () => {
         Promise.all(updates),
       ),
     };
-    const service = new CatalogService(prisma as unknown as PrismaService, {} as MediaService);
+    const service = new CatalogService(
+      prisma as unknown as PrismaService,
+      {} as MediaService,
+    );
 
     await service.reorderProducts(['d', 'b']);
 
@@ -63,7 +66,10 @@ describe('CatalogService product rules', () => {
         findMany: jest.fn().mockResolvedValue([{ id: 'fa', name: 'فارسی' }]),
       },
     };
-    const service = new CatalogService(prisma as unknown as PrismaService, {} as MediaService);
+    const service = new CatalogService(
+      prisma as unknown as PrismaService,
+      {} as MediaService,
+    );
     const input = baseProduct();
     input.status = ContentStatus.PUBLISHED;
 
@@ -91,7 +97,10 @@ describe('CatalogService product rules', () => {
           callback(transaction),
       ),
     };
-    const service = new CatalogService(prisma as unknown as PrismaService, {} as MediaService);
+    const service = new CatalogService(
+      prisma as unknown as PrismaService,
+      {} as MediaService,
+    );
 
     await service.createProduct(baseProduct());
 
@@ -114,7 +123,9 @@ describe('CatalogService product rules', () => {
       { product: { update } } as unknown as PrismaService,
       {} as MediaService,
     );
-    jest.spyOn(service, 'getProduct').mockResolvedValue({ id: 'product-1' } as never);
+    jest
+      .spyOn(service, 'getProduct')
+      .mockResolvedValue({ id: 'product-1' } as never);
 
     await service.archiveProduct('product-1');
 
@@ -133,8 +144,9 @@ describe('CatalogService product rules', () => {
     };
     const service = new CatalogService(
       {
-        $transaction: jest.fn((callback: (client: typeof transaction) => unknown) =>
-          callback(transaction),
+        $transaction: jest.fn(
+          (callback: (client: typeof transaction) => unknown) =>
+            callback(transaction),
         ),
       } as unknown as PrismaService,
       { remove } as unknown as MediaService,

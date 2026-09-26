@@ -98,24 +98,27 @@ model AdminSession {
 }
 
 model Language {
-  id                    String                             @id @default(cuid())
-  code                  String                             @unique @db.VarChar(12)
-  name                  String                             @db.VarChar(80)
-  nativeName            String                             @map("native_name") @db.VarChar(80)
-  direction             TextDirection
-  isDefault             Boolean                            @default(false) @map("is_default")
-  isActive              Boolean                            @default(true) @map("is_active")
-  isRequiredForPublish  Boolean                            @default(false) @map("is_required_for_publish")
-  displayOrder          Int                                @default(0) @map("display_order")
-  createdAt             DateTime                           @default(now()) @map("created_at")
-  updatedAt             DateTime                           @updatedAt @map("updated_at")
-  phraseTranslations    InterfacePhraseTranslation[]
-  mediaTranslations     MediaTranslation[]
-  categoryTranslations  ProductCategoryTranslation[]
-  attributeTranslations AttributeDefinitionTranslation[]
-  optionTranslations    AttributeOptionTranslation[]
-  productTranslations   ProductTranslation[]
-  valueTranslations     ProductAttributeValueTranslation[]
+  id                       String                             @id @default(cuid())
+  code                     String                             @unique @db.VarChar(12)
+  name                     String                             @db.VarChar(80)
+  nativeName               String                             @map("native_name") @db.VarChar(80)
+  direction                TextDirection
+  isDefault                Boolean                            @default(false) @map("is_default")
+  isActive                 Boolean                            @default(true) @map("is_active")
+  isRequiredForPublish     Boolean                            @default(false) @map("is_required_for_publish")
+  displayOrder             Int                                @default(0) @map("display_order")
+  createdAt                DateTime                           @default(now()) @map("created_at")
+  updatedAt                DateTime                           @updatedAt @map("updated_at")
+  phraseTranslations       InterfacePhraseTranslation[]
+  mediaTranslations        MediaTranslation[]
+  categoryTranslations     ProductCategoryTranslation[]
+  attributeTranslations    AttributeDefinitionTranslation[]
+  optionTranslations       AttributeOptionTranslation[]
+  productTranslations      ProductTranslation[]
+  valueTranslations        ProductAttributeValueTranslation[]
+  articleTranslations      BlogArticleTranslation[]
+  blogCategoryTranslations BlogCategoryTranslation[]
+  blogTagTranslations      BlogTagTranslation[]
 
   @@index([isActive, displayOrder])
   @@map("languages")
@@ -167,6 +170,7 @@ model MediaAsset {
   productMedia     ProductMedia[]
   productCovers    Product[]             @relation("ProductCover")
   categoryImages   ProductCategory[]     @relation("ProductCategoryImage")
+  articleMedia     BlogArticleMedia[]
 
   @@index([kind, processingStatus])
   @@map("media_assets")
@@ -421,4 +425,129 @@ model RelatedProduct {
 
   @@id([productId, relatedProductId])
   @@map("related_products")
+}
+
+model BlogArticle {
+  id           String                   @id @default(cuid())
+  status       ContentStatus            @default(DRAFT)
+  coverMediaId String?                  @map("cover_media_id")
+  displayOrder Int                      @default(0) @map("display_order")
+  publishedAt  DateTime?                @map("published_at")
+  createdAt    DateTime                 @default(now()) @map("created_at")
+  updatedAt    DateTime                 @updatedAt @map("updated_at")
+  translations BlogArticleTranslation[]
+  categories   BlogArticleCategory[]
+  tags         BlogArticleTag[]
+  media        BlogArticleMedia[]
+
+  @@index([status, displayOrder])
+  @@map("blog_articles")
+}
+
+model BlogArticleTranslation {
+  articleId      String            @map("article_id")
+  languageId     String            @map("language_id")
+  title          String?           @db.VarChar(255)
+  slug           String?           @db.VarChar(200)
+  summary        String?           @db.Text
+  content        Json
+  seoTitle       String?           @map("seo_title") @db.VarChar(255)
+  seoDescription String?           @map("seo_description") @db.VarChar(500)
+  status         TranslationStatus @default(DRAFT)
+  article        BlogArticle       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  language       Language          @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([articleId, languageId])
+  @@unique([languageId, slug])
+  @@index([languageId, status])
+  @@map("blog_article_translations")
+}
+
+model BlogCategory {
+  id           String                    @id @default(cuid())
+  isActive     Boolean                   @default(true) @map("is_active")
+  displayOrder Int                       @default(0) @map("display_order")
+  createdAt    DateTime                  @default(now()) @map("created_at")
+  updatedAt    DateTime                  @updatedAt @map("updated_at")
+  translations BlogCategoryTranslation[]
+  articles     BlogArticleCategory[]
+
+  @@index([isActive, displayOrder])
+  @@map("blog_categories")
+}
+
+model BlogCategoryTranslation {
+  categoryId     String       @map("category_id")
+  languageId     String       @map("language_id")
+  title          String       @db.VarChar(180)
+  slug           String       @db.VarChar(180)
+  description    String?      @db.Text
+  seoTitle       String?      @map("seo_title") @db.VarChar(255)
+  seoDescription String?      @map("seo_description") @db.VarChar(500)
+  category       BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  language       Language     @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([categoryId, languageId])
+  @@unique([languageId, slug])
+  @@map("blog_category_translations")
+}
+
+model BlogTag {
+  id           String               @id @default(cuid())
+  isActive     Boolean              @default(true) @map("is_active")
+  displayOrder Int                  @default(0) @map("display_order")
+  createdAt    DateTime             @default(now()) @map("created_at")
+  updatedAt    DateTime             @updatedAt @map("updated_at")
+  translations BlogTagTranslation[]
+  articles     BlogArticleTag[]
+
+  @@index([isActive, displayOrder])
+  @@map("blog_tags")
+}
+
+model BlogTagTranslation {
+  tagId      String   @map("tag_id")
+  languageId String   @map("language_id")
+  title      String   @db.VarChar(180)
+  slug       String   @db.VarChar(180)
+  tag        BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  language   Language @relation(fields: [languageId], references: [id], onDelete: Restrict)
+
+  @@id([tagId, languageId])
+  @@unique([languageId, slug])
+  @@map("blog_tag_translations")
+}
+
+model BlogArticleCategory {
+  articleId  String       @map("article_id")
+  categoryId String       @map("category_id")
+  isPrimary  Boolean      @default(false) @map("is_primary")
+  article    BlogArticle  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  category   BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@id([articleId, categoryId])
+  @@index([categoryId, isPrimary])
+  @@map("blog_article_categories")
+}
+
+model BlogArticleTag {
+  articleId String      @map("article_id")
+  tagId     String      @map("tag_id")
+  article   BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  tag       BlogTag     @relation(fields: [tagId], references: [id], onDelete: Restrict)
+
+  @@id([articleId, tagId])
+  @@index([tagId])
+  @@map("blog_article_tags")
+}
+
+model BlogArticleMedia {
+  articleId    String      @map("article_id")
+  mediaId      String      @unique @map("media_id")
+  displayOrder Int         @default(0) @map("display_order")
+  article      BlogArticle @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  media        MediaAsset  @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
+  @@id([articleId, mediaId])
+  @@map("blog_article_media")
 }

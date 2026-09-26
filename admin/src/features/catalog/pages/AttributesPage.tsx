@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import Checkbox from '@/components/ui/Checkbox'
 import { Form, FormItem } from '@/components/ui/Form'
 import Input from '@/components/ui/Input'
+import ColorPicker from '@/components/shared/ColorPicker'
 import Select from '@/components/ui/Select'
 import DataTable, { type ColumnDef } from '@/components/shared/DataTable'
 import DataList from '@/components/shared/DataList'
@@ -579,7 +580,7 @@ export function AttributesPage() {
                                     {form.options.map((option, index) => (
                                         <div
                                             key={option.id ?? index}
-                                            className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_130px_auto]"
+                                            className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[minmax(0,1fr)_180px_auto]"
                                         >
                                             <FormItem label="عنوان گزینه">
                                                 <Input
@@ -638,11 +639,9 @@ export function AttributesPage() {
                                                 />
                                             </FormItem>
                                             <FormItem label="کد رنگ">
-                                                <Input
-                                                    dir="ltr"
-                                                    placeholder="#FFFFFF"
+                                                <ColorPicker
                                                     value={option.colorHex}
-                                                    onChange={(event) =>
+                                                    onChange={(colorHex) =>
                                                         setForm((current) => ({
                                                             ...current,
                                                             options:
@@ -655,10 +654,7 @@ export function AttributesPage() {
                                                                         index
                                                                             ? {
                                                                                   ...candidate,
-                                                                                  colorHex:
-                                                                                      event
-                                                                                          .target
-                                                                                          .value,
+                                                                                  colorHex,
                                                                               }
                                                                             : candidate,
                                                                 ),

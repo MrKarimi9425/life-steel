@@ -23,6 +23,9 @@ type Props = {
     onPrimaryChange?: (id: string) => void
     onRemove?: (asset: MediaAsset) => void
     onBusyChange?: (busy: boolean) => void
+    allowVideos?: boolean
+    onUploaded?: (asset: MediaAsset) => Promise<void>
+    onAssetUpdated?: (asset: MediaAsset) => void
 }
 
 export default function ScopedMediaPicker({
@@ -34,6 +37,9 @@ export default function ScopedMediaPicker({
     onPrimaryChange,
     onRemove,
     onBusyChange,
+    allowVideos = true,
+    onUploaded,
+    onAssetUpdated,
 }: Props) {
     const imageInput = useRef<HTMLInputElement>(null)
     const videoInput = useRef<HTMLInputElement>(null)
@@ -69,27 +75,33 @@ export default function ScopedMediaPicker({
                             setProgress({
                                 fileName: file.name,
                                 percent,
-                                phase: percent === 100 ? 'processing' : 'uploading',
+                                phase:
+                                    percent === 100
+                                        ? 'processing'
+                                        : 'uploading',
                             })
                         },
                     },
                 )
                 if (!response.data.data)
                     throw new Error('پاسخ بارگذاری فایل معتبر نیست.')
-                return {
+                const asset = {
                     ...response.data.data,
                     variants: response.data.data.variants ?? [],
                     translations: response.data.data.translations ?? [],
                 }
+                await onUploaded?.(asset)
+                return asset
             } finally {
                 setProgress(null)
             }
         },
         onSuccess: (asset) => {
-            client.setQueryData<MediaAsset[]>(['media'], (current) => [
-                ...(current ?? []),
-                asset,
-            ])
+            if (!onUploaded)
+                client.setQueryData<MediaAsset[]>(['media'], (current) => [
+                    ...(current ?? []),
+                    asset,
+                ])
             const next = multiple
                 ? [...selectedIdsRef.current, asset.id]
                 : [asset.id]
@@ -130,7 +142,7 @@ export default function ScopedMediaPicker({
                     event.target.value = ''
                 }}
             />
-            {multiple && (
+            {multiple && allowVideos && (
                 <input
                     ref={videoInput}
                     accept="video/mp4,video/webm,video/quicktime"
@@ -153,7 +165,7 @@ export default function ScopedMediaPicker({
                 >
                     {multiple ? 'افزودن عکس' : 'بارگذاری تصویر'}
                 </Button>
-                {multiple && (
+                {multiple && allowVideos && (
                     <Button
                         disabled={upload.isPending || imageQueue.length > 0}
                         type="button"
@@ -164,13 +176,29 @@ export default function ScopedMediaPicker({
                 )}
             </div>
             {progress && !imageQueue.length && (
-                <div aria-live="polite" className="space-y-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700">
+                <div
+                    aria-live="polite"
+                    className="space-y-2 rounded-xl border border-gray-200 p-3 dark:border-gray-700"
+                >
                     <div className="flex justify-between gap-2 text-sm">
                         <span className="truncate">{progress.fileName}</span>
-                        <span>{progress.phase === 'processing' ? 'در حال پردازش' : `${progress.percent}٪`}</span>
+                        <span>
+                            {progress.phase === 'processing'
+                                ? 'در حال پردازش'
+                                : `${progress.percent}٪`}
+                        </span>
                     </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700" role="progressbar" aria-valuenow={progress.percent} aria-valuemin={0} aria-valuemax={100}>
-                        <div className="h-full rounded-full bg-primary transition-[width] duration-200" style={{ width: `${progress.percent}%` }} />
+                    <div
+                        className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700"
+                        role="progressbar"
+                        aria-valuenow={progress.percent}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                    >
+                        <div
+                            className="h-full rounded-full bg-primary transition-[width] duration-200"
+                            style={{ width: `${progress.percent}%` }}
+                        />
                     </div>
                 </div>
             )}
@@ -200,6 +228,7 @@ export default function ScopedMediaPicker({
             <MediaTranslationDialog
                 asset={editingAsset}
                 onClose={() => setEditingAsset(null)}
+                onSaved={onAssetUpdated}
             />
         </div>
     )

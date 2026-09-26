@@ -3,8 +3,10 @@ import {
     DragDropContext,
     Draggable,
     Droppable,
+    type DraggableProvided,
     type DropResult,
 } from '@hello-pangea/dnd'
+import { useConfig } from '@/components/ui/ConfigProvider'
 import classNames from '@/utils/classNames'
 import type { ReactNode } from 'react'
 
@@ -35,6 +37,7 @@ export default function DataList<TData>({
     onReorder,
     presentation = 'rows',
 }: DataListProps<TData>) {
+    const { direction } = useConfig()
     const mobileCards = presentation === 'mobile-cards'
     const handleDragEnd = (result: DropResult) => {
         if (
@@ -51,9 +54,49 @@ export default function DataList<TData>({
         onReorder?.(reorderedData)
     }
 
+    // The clone and the resting row use the same markup and classes.
+    const renderRow = (item: TData, provided: DraggableProvided) => (
+        <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            dir={direction}
+            className={classNames(
+                mobileCards
+                    ? 'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 transition-shadow dark:border-gray-700 dark:bg-gray-800 md:flex md:flex-row md:justify-between md:gap-4 md:rounded-none md:border-0 md:px-0 md:py-5'
+                    : 'flex flex-col gap-4 bg-white py-5 transition-shadow dark:bg-gray-800 md:flex-row md:items-center md:justify-between',
+            )}
+        >
+            {draggable && (
+                <button
+                    {...provided.dragHandleProps}
+                    aria-label={dragHandleLabel}
+                    className={classNames(
+                        'cursor-grab text-xl text-gray-400 disabled:cursor-default disabled:opacity-40',
+                        mobileCards &&
+                            'flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 md:size-auto md:rounded-none md:bg-transparent dark:bg-gray-700 dark:md:bg-transparent',
+                    )}
+                    disabled={dragDisabled}
+                    type="button"
+                >
+                    <MenuIcon aria-hidden="true" focusable="false" height={20} width={20} />
+                </button>
+            )}
+            {columns.map((column) => (
+                <div key={column.id} className={column.className}>
+                    {column.render(item)}
+                </div>
+            ))}
+        </div>
+    )
+
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
-            <Droppable droppableId="data-list">
+            <Droppable
+                droppableId="data-list"
+                renderClone={(provided, _snapshot, rubric) =>
+                    renderRow(data[rubric.source.index], provided)
+                }
+            >
                 {(droppableProvided) => (
                     <div
                         ref={droppableProvided.innerRef}
@@ -74,46 +117,7 @@ export default function DataList<TData>({
                                     index={index}
                                     isDragDisabled={!draggable || dragDisabled}
                                 >
-                                    {(draggableProvided) => (
-                                        <div
-                                            ref={draggableProvided.innerRef}
-                                            {...draggableProvided.draggableProps}
-                                            className={classNames(
-                                                mobileCards
-                                                    ? 'grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-gray-200 bg-white p-3 transition-shadow dark:border-gray-700 dark:bg-gray-800 md:flex md:flex-row md:justify-between md:gap-4 md:rounded-none md:border-0 md:px-0 md:py-5'
-                                                    : 'flex flex-col gap-4 bg-white py-5 transition-shadow dark:bg-gray-800 md:flex-row md:items-center md:justify-between',
-                                            )}
-                                        >
-                                            {draggable && (
-                                                <button
-                                                    {...draggableProvided.dragHandleProps}
-                                                    aria-label={dragHandleLabel}
-                                                    className={classNames(
-                                                        'cursor-grab text-xl text-gray-400 disabled:cursor-default disabled:opacity-40',
-                                                        mobileCards &&
-                                                            'flex size-9 shrink-0 items-center justify-center rounded-lg bg-gray-100 md:size-auto md:rounded-none md:bg-transparent dark:bg-gray-700 dark:md:bg-transparent',
-                                                    )}
-                                                    disabled={dragDisabled}
-                                                    type="button"
-                                                >
-                                                    <MenuIcon
-                                                        aria-hidden="true"
-                                                        focusable="false"
-                                                        height={20}
-                                                        width={20}
-                                                    />
-                                                </button>
-                                            )}
-                                            {columns.map((column) => (
-                                                <div
-                                                    key={column.id}
-                                                    className={column.className}
-                                                >
-                                                    {column.render(item)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
+                                    {(provided) => renderRow(item, provided)}
                                 </Draggable>
                             )
                         })}

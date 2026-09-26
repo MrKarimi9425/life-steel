@@ -21,6 +21,7 @@ import TableActionButton from '@/components/shared/TableActionButton'
 import TableEmptyStateIcon from '@/components/shared/TableEmptyStateIcon'
 import Tag from '@/components/ui/Tag'
 import { apiClient } from '@/lib/http/api-client'
+import createSlug from '@/utils/createSlug'
 import type { ApiResponse } from '@/lib/http/api.types'
 import type { Language } from '@/features/languages'
 import type { MediaAsset } from '@/features/media'
@@ -96,9 +97,9 @@ export function CategoriesPage() {
             const payload = {
                 ...form,
                 imageId: form.imageId || undefined,
-                translations: form.translations.filter(
-                    (item) => item.title.trim() && item.slug.trim(),
-                ),
+                translations: form.translations
+                    .filter((item) => item.title.trim())
+                    .map((item) => ({ ...item, slug: createSlug(item.title) })),
             }
             return editingId
                 ? apiClient.patch(`catalog/categories/${editingId}`, payload)
@@ -287,7 +288,7 @@ export function CategoriesPage() {
                         >
                             {currentTranslation && (
                                 <div className="space-y-4">
-                                    <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="grid gap-4">
                                         <FormItem
                                             asterisk={isPersian}
                                             label="عنوان"
@@ -298,22 +299,6 @@ export function CategoriesPage() {
                                                 onChange={(event) =>
                                                     updateTranslation({
                                                         title: event.target
-                                                            .value,
-                                                    })
-                                                }
-                                            />
-                                        </FormItem>
-                                        <FormItem
-                                            asterisk={isPersian}
-                                            label="شناسه صفحه"
-                                        >
-                                            <Input
-                                                dir="ltr"
-                                                placeholder="slug"
-                                                value={currentTranslation.slug}
-                                                onChange={(event) =>
-                                                    updateTranslation({
-                                                        slug: event.target
                                                             .value,
                                                     })
                                                 }

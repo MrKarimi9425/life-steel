@@ -1,4 +1,5 @@
 import { apiClient } from '@/lib/http/api-client'
+import createSlug from '@/utils/createSlug'
 import type { ApiResponse } from '@/lib/http/api.types'
 import type {
     AttributeValueForm,
@@ -32,7 +33,7 @@ export const productsApi = {
             translations: form.translations.map((item) => ({
                 ...item,
                 title: item.title?.trim() || undefined,
-                slug: item.slug?.trim() || undefined,
+                slug: createSlug(item.title ?? '') || undefined,
             })),
         })
     },
@@ -43,7 +44,7 @@ export const productsApi = {
             translations: form.translations.map((item) => ({
                 ...item,
                 title: item.title?.trim() || undefined,
-                slug: item.slug?.trim() || undefined,
+                slug: createSlug(item.title ?? '') || undefined,
             })),
         })
     },

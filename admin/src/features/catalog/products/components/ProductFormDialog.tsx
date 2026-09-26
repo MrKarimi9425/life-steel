@@ -13,6 +13,7 @@ import Input from '@/components/ui/Input'
 import Select from '@/components/ui/Select'
 import type { Language } from '@/features/languages'
 import { normalizeError } from '@/lib/errors'
+import createSlug from '@/utils/createSlug'
 import { LanguageTabs } from '../../components/LanguageTabs'
 import type { Category, Translation } from '../../types'
 import { productsApi } from '../products.api'
@@ -167,7 +168,7 @@ export default function ProductFormDialog({
     const submit = (event: FormEvent) => {
         event.preventDefault()
         const invalidIndex = form.translations.findIndex(
-            (item) => item.slug?.trim() && !slugPattern.test(item.slug.trim()),
+            (item) => item.title?.trim() && !slugPattern.test(createSlug(item.title)),
         )
         if (invalidIndex !== -1) {
             setFieldErrors({
@@ -181,10 +182,6 @@ export default function ProductFormDialog({
         setFieldErrors({})
         saveMutation.mutate()
     }
-    const activeTranslationIndex = form.translations.findIndex(
-        (item) => item.languageId === activeLanguageId,
-    )
-    const slugError = fieldErrors[`translations.${activeTranslationIndex}.slug`]
     const validationErrors = Object.entries(fieldErrors).map(([path, message]) => {
         const parts = path.split('.')
         const field = parts[0] === 'translations' ? parts[2] : parts[0]
@@ -235,7 +232,7 @@ export default function ProductFormDialog({
                     >
                         {currentTranslation && (
                             <div className="space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
+                                <div className="grid gap-4">
                                     <FormItem
                                         asterisk={isPersian}
                                         label="عنوان محصول"
@@ -249,27 +246,6 @@ export default function ProductFormDialog({
                                                 })
                                             }
                                         />
-                                    </FormItem>
-                                    <FormItem
-                                        asterisk={isPersian}
-                                        label="شناسه صفحه"
-                                    >
-                                        <Input
-                                            dir="ltr"
-                                            placeholder="slug"
-                                            value={currentTranslation.slug}
-                                            onChange={(event) => {
-                                                setFieldErrors({})
-                                                updateTranslation({
-                                                    slug: event.target.value,
-                                                })
-                                            }}
-                                        />
-                                        {slugError && (
-                                            <p className="mt-1 text-xs text-red-600" role="alert">
-                                                {slugError}
-                                            </p>
-                                        )}
                                     </FormItem>
                                 </div>
                                 <FormItem label="خلاصه">

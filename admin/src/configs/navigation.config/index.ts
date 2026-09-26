@@ -25,6 +25,19 @@ const navigationConfig: NavigationTree[] = [
         ],
     },
     {
+        key: 'blog', path: '', title: 'وبلاگ', translateKey: '', icon: null,
+        type: 'title', authority: [], subMenu: [
+            {
+                key: 'blog-management', path: '', title: 'وبلاگ', translateKey: '', icon: CategoryIcon,
+                type: 'collapse', authority: [], subMenu: [
+                    { key: 'blog-articles', path: '/blog/articles', title: 'مقاله ها', translateKey: '', icon: null, type: 'item', authority: [], subMenu: [] },
+                    { key: 'blog-categories', path: '/blog/categories', title: 'دسته بندی ها', translateKey: '', icon: null, type: 'item', authority: [], subMenu: [] },
+                    { key: 'blog-tags', path: '/blog/tags', title: 'برچسب ها', translateKey: '', icon: null, type: 'item', authority: [], subMenu: [] },
+                ],
+            },
+        ],
+    },
+    {
         key: 'settings', path: '', title: 'تنظیمات', translateKey: '', icon: null,
         type: 'title', authority: [], subMenu: [
             {

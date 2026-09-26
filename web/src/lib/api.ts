@@ -54,13 +54,17 @@ export type ProductDetailData = Omit<ProductCardData, "translations"> & {
 type ApiResponse<T> = { data: T | null };
 const backend = process.env.API_PROXY_TARGET ?? "http://127.0.0.1:3000";
 
-async function apiFetch<T>(path: string): Promise<T | null> {
+export async function apiFetch<T>(path: string, strict = false): Promise<T | null> {
   try {
     const response = await fetch(`${backend}/api/v1/${path}`, { cache: "no-store" });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      if (strict && response.status !== 404) throw new Error("Public API request failed.");
+      return null;
+    }
     const payload = (await response.json()) as ApiResponse<T>;
     return payload.data;
-  } catch {
+  } catch (error) {
+    if (strict) throw error;
     return null;
   }
 }

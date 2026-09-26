@@ -42,6 +42,7 @@ export class MediaService {
 
   list() {
     return this.prisma.mediaAsset.findMany({
+      where: { articleMedia: { none: {} } },
       include: { variants: true, translations: true },
       orderBy: { createdAt: 'desc' },
     });
@@ -52,6 +53,18 @@ export class MediaService {
       return this.uploadImage(file, requireSquareMax1200);
     if (videoMimeTypes.has(file.mimetype)) return this.uploadVideo(file);
     throw new BadRequestException('فرمت فایل پشتیبانی نمیشود.');
+  }
+
+  async assertNotBlogMedia(ids: string[]) {
+    if (!ids.length) return;
+    const references = await this.prisma.blogArticleMedia.count({
+      where: { mediaId: { in: ids } },
+    });
+    if (references > 0) {
+      throw new BadRequestException(
+        'تصاویر گالری مقاله در بخش دیگری قابل استفاده نیستند.',
+      );
+    }
   }
 
   createExternalVideo(url: string, title: string) {
@@ -105,6 +118,7 @@ export class MediaService {
             productMedia: true,
             productCovers: true,
             categoryImages: true,
+            articleMedia: true,
           },
         },
       },
@@ -116,7 +130,8 @@ export class MediaService {
     if (
       media._count.productMedia > 0 ||
       media._count.productCovers > 0 ||
-      media._count.categoryImages > 0
+      media._count.categoryImages > 0 ||
+      media._count.articleMedia > 0
     ) {
       if (options.skipIfReferenced) return false;
       throw new BadRequestException(

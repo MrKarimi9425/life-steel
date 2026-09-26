@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getLanguages, getPhrases } from "@/lib/api";
+import { blogCopy } from "@/lib/blog";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +28,7 @@ export default async function LocaleLayout({
           <nav>
             <Link href={`/${locale}`}>{t("common.home", isFa ? "خانه" : "Home")}</Link>
             <Link href={`/${locale}/products`}>{t("common.products", isFa ? "محصولات" : "Products")}</Link>
+            <Link href={`/${locale}/blog`}>{t("common.blog", blogCopy(locale).blog)}</Link>
             <a href="#about">{t("common.about", isFa ? "درباره ما" : "About")}</a>
             <a href="#contact">{t("common.contact", isFa ? "تماس" : "Contact")}</a>
           </nav>

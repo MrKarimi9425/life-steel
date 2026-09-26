@@ -9,6 +9,7 @@ import { CatalogModule } from './modules/catalog/catalog.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { LanguagesModule } from './modules/languages/languages.module';
 import { MediaModule } from './modules/media/media.module';
+import { BlogModule } from './modules/blog/blog.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MediaModule } from './modules/media/media.module';
     MediaModule,
     CatalogModule,
     DashboardModule,
+    BlogModule,
   ],
 })
 export class AppModule {}
