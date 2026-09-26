@@ -7,6 +7,7 @@ import { PrismaService } from '../../../database/prisma/prisma.service';
 import { MediaService } from '../../media/services/media.service';
 import { CreateProductDto } from '../dto/catalog.dto';
 import { CatalogService } from './catalog.service';
+import { ProductPricingService } from './product-pricing.service';
 
 const baseProduct = (): CreateProductDto => ({
   status: ContentStatus.DRAFT,
@@ -38,6 +39,7 @@ describe('CatalogService product rules', () => {
     const service = new CatalogService(
       prisma as unknown as PrismaService,
       {} as MediaService,
+      {} as ProductPricingService,
     );
 
     await service.reorderProducts(['d', 'b']);
@@ -51,7 +53,11 @@ describe('CatalogService product rules', () => {
   });
 
   it('requires a primary category from selected categories', async () => {
-    const service = new CatalogService({} as PrismaService, {} as MediaService);
+    const service = new CatalogService(
+      {} as PrismaService,
+      {} as MediaService,
+      {} as ProductPricingService,
+    );
     const input = baseProduct();
     input.primaryCategoryId = 'another-category';
 
@@ -69,6 +75,7 @@ describe('CatalogService product rules', () => {
     const service = new CatalogService(
       prisma as unknown as PrismaService,
       {} as MediaService,
+      {} as ProductPricingService,
     );
     const input = baseProduct();
     input.status = ContentStatus.PUBLISHED;
@@ -100,6 +107,7 @@ describe('CatalogService product rules', () => {
     const service = new CatalogService(
       prisma as unknown as PrismaService,
       {} as MediaService,
+      {} as ProductPricingService,
     );
 
     await service.createProduct(baseProduct());
@@ -122,6 +130,7 @@ describe('CatalogService product rules', () => {
     const service = new CatalogService(
       { product: { update } } as unknown as PrismaService,
       {} as MediaService,
+      {} as ProductPricingService,
     );
     jest
       .spyOn(service, 'getProduct')
@@ -150,6 +159,7 @@ describe('CatalogService product rules', () => {
         ),
       } as unknown as PrismaService,
       { remove } as unknown as MediaService,
+      {} as ProductPricingService,
     );
     jest.spyOn(service, 'getProduct').mockResolvedValue({
       id: 'product-1',

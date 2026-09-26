@@ -6,9 +6,23 @@ import type {
     ProductBaseForm,
     ProductDetail,
     ProductListResult,
+    ProductPricing,
+    ProductPricingForm,
 } from './products.types'
 
 export const productsApi = {
+    async pricing(id: string) {
+        const response = await apiClient.get<ApiResponse<ProductPricing>>(`catalog/products/${id}/pricing`)
+        if (!response.data.data) throw new Error('قیمت گذاری محصول دریافت نشد.')
+        return response.data.data
+    },
+    savePricing(id: string, form: ProductPricingForm) {
+        return apiClient.put(`catalog/products/${id}/pricing`, {
+            showPrice: form.showPrice,
+            basePrice: form.basePrice || null,
+            colors: form.colors.map((color) => ({ ...color, amount: color.amount || null })),
+        })
+    },
     async list(params: URLSearchParams) {
         const response = await apiClient.get<ApiResponse<ProductListResult>>(
             `catalog/products?${params}`,

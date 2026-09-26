@@ -1,4 +1,5 @@
 import type { AttributeDefinition, Translation } from '../types'
+import type { MediaAsset } from '@/features/media'
 
 export type ProductStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
 
@@ -26,7 +27,7 @@ export type ProductDetail = ProductListItem & {
     coverMediaId: string | null
     displayOrder: number
     categories: Array<{ categoryId: string; isPrimary: boolean }>
-    media: Array<{ mediaId: string }>
+    media: Array<{ mediaId: string; media: MediaAsset }>
     attributeValues: ProductAttributeValue[]
 }
 
@@ -65,4 +66,16 @@ export type ProductListResult = {
     pageSize: number
 }
 
-export type ProductDialogKind = 'form' | 'attributes' | 'media'
+export type ProductDialogKind = 'form' | 'attributes' | 'media' | 'pricing'
+
+export type ProductPricing = {
+    images: MediaAsset[]
+    showPrice: boolean
+    basePrice: string | null
+    colors: Array<{ id: string; colorHex: string | null; amount: string | null; mediaIds: string[]; primaryMediaId: string | null; translations: Array<{ languageId: string; label: string }> }>
+}
+export type ProductPricingForm = {
+    showPrice: boolean
+    basePrice: string
+    colors: Array<{ optionId: string; amount: string; mediaIds: string[]; primaryMediaId: string | null }>
+}

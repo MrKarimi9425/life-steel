@@ -1,4 +1,5 @@
 import DocumentIcon from '@/assets/icons/iconsax/linear/document.svg?react'
+import { LuCoins } from 'react-icons/lu'
 import EditIcon from '@/assets/icons/iconsax/linear/edit-2.svg?react'
 import GalleryIcon from '@/assets/icons/iconsax/linear/gallery.svg?react'
 import FolderIcon from '@/assets/icons/iconsax/linear/folder-2.svg?react'
@@ -72,6 +73,7 @@ export default function ProductTable({
             id: 'actions',
             cell: ({ row }) => (
                 <TableActions>
+                    <TableActionButton icon={<LuCoins />} label="قیمت گذاری" tone="success" onClick={() => onAction('pricing', row.original.id)} />
                     <TableActionButton
                         icon={<EditIcon height={18} width={18} />}
                         label="ویرایش اطلاعات"

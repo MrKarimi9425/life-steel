@@ -12,11 +12,15 @@ type Props = {
     assets: MediaAsset[]
     languageId: string
     onFinish: (image: BlockEditorImage | null) => void
+    title?: string
+    emptyMessage?: string
 }
 export default function ArticleImageDialog({
     assets,
     languageId,
     onFinish,
+    title = 'انتخاب تصویر از گالری مقاله',
+    emptyMessage = 'ابتدا تصاویر را از اکشن گالری مقاله بارگذاری کنید.',
 }: Props) {
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const image = assets.find((item) => item.id === selectedId)
@@ -35,13 +39,13 @@ export default function ArticleImageDialog({
     return (
         <FormDialog
             isOpen
-            title="انتخاب تصویر از گالری مقاله"
+            title={title}
             width={600}
             onClose={() => onFinish(null)}
         >
             <FormDialogBody>
                 {!assets.length ? (
-                    <p>ابتدا تصاویر را از اکشن گالری مقاله بارگذاری کنید.</p>
+                    <p>{emptyMessage}</p>
                 ) : (
                     <ImageSelectionGrid
                         images={options}

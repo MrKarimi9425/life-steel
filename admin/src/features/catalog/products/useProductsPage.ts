@@ -127,6 +127,7 @@ export function useProductsPage() {
     const refresh = () => {
         void client.invalidateQueries({ queryKey: ['catalog', 'products'] })
         void client.invalidateQueries({ queryKey: ['catalog', 'product'] })
+        void client.invalidateQueries({ queryKey: ['catalog', 'pricing'] })
     }
     const closeDialog = () => setDialog(null)
     const openDialog = (kind: ProductDialogKind, productId: string | null) =>

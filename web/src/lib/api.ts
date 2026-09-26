@@ -6,15 +6,22 @@ export type Language = {
   isDefault: boolean;
 };
 
+import type { BlogNode } from './blog';
+import type { PublicPricing } from './product-pricing';
+
 export type Media = {
+  id: string;
+  width: number | null;
+  height: number | null;
   path: string | null;
   externalUrl: string | null;
   kind: "IMAGE" | "VIDEO";
-  translations: Array<{ title: string | null; altText: string | null }>;
+  translations: Array<{ title: string | null; altText: string | null; caption: string | null }>;
   variants: Array<{ kind: string; path: string; width: number; height: number }>;
 };
 
 export type ProductCardData = {
+  pricing?: PublicPricing;
   id: string;
   sku: string | null;
   isFeatured: boolean;
@@ -27,12 +34,14 @@ export type ProductCardData = {
 };
 
 export type ProductDetailData = Omit<ProductCardData, "translations"> & {
+  pricing: PublicPricing;
   relatedProducts: ProductCardData[];
   translations: Array<{
     title: string;
     slug: string;
     summary: string | null;
     description: string | null;
+    content: BlogNode | null;
     seoTitle: string | null;
     seoDescription: string | null;
   }>;

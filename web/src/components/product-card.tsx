@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { mediaUrl, type ProductCardData } from "@/lib/api";
+import { pricingCopy, pricingText } from "@/lib/product-pricing";
 
 export function ProductCard({ product, locale }: { product: ProductCardData; locale: string }) {
   const translation = product.translations[0];
@@ -20,6 +21,8 @@ export function ProductCard({ product, locale }: { product: ProductCardData; loc
         <span className="eyebrow">{product.categories.find((item) => item.isPrimary)?.category.translations[0]?.title ?? "Life Steel"}</span>
         <h3>{translation.title}</h3>
         {translation.summary && <p>{translation.summary}</p>}
+        {product.pricing && <p>{pricingText(product.pricing, locale)}</p>}
+        {product.pricing?.showPrice && product.pricing.minimum && product.pricing.hasUnpricedColors && <p>{pricingCopy(locale).other}</p>}
         <span className="card-link">{locale === "fa" ? "مشاهده جزئیات ←" : "View details →"}</span>
       </div>
     </Link>

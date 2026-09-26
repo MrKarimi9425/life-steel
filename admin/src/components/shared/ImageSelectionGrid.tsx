@@ -2,13 +2,19 @@ type ImageOption = { id: string; src: string; label: string }
 
 type Props = {
     images: ImageOption[]
-    selectedId: string | null
+    selectedId?: string | null
+    selectedIds?: string[]
+    selectedLabel?: string
+    unselectedLabel?: string
     onSelect: (id: string) => void
 }
 
 export default function ImageSelectionGrid({
     images,
     selectedId,
+    selectedIds,
+    selectedLabel = 'انتخاب شده',
+    unselectedLabel = 'انتخاب تصویر',
     onSelect,
 }: Props) {
     return (
@@ -22,9 +28,13 @@ export default function ImageSelectionGrid({
                     key={image.id}
                     type="button"
                     aria-label={image.label}
-                    aria-pressed={selectedId === image.id}
+                    aria-pressed={
+                        selectedIds
+                            ? selectedIds.includes(image.id)
+                            : selectedId === image.id
+                    }
                     onClick={() => onSelect(image.id)}
-                    className={`overflow-hidden rounded-xl border-2 p-2 text-start transition-colors focus-visible:outline-2 focus-visible:outline-primary ${selectedId === image.id ? 'border-primary bg-primary/10' : 'border-gray-200 hover:border-primary dark:border-gray-600'}`}
+                    className={`overflow-hidden rounded-xl border-2 p-2 text-start transition-colors focus-visible:outline-2 focus-visible:outline-primary ${(selectedIds ? selectedIds.includes(image.id) : selectedId === image.id) ? 'border-primary bg-primary/10' : 'border-gray-200 hover:border-primary dark:border-gray-600'}`}
                 >
                     <img
                         src={image.src}
@@ -36,9 +46,13 @@ export default function ImageSelectionGrid({
                         {image.label}
                     </span>
                     <span className="mt-1 block text-xs text-primary">
-                        {selectedId === image.id
-                            ? 'انتخاب شده'
-                            : 'انتخاب تصویر'}
+                        {(
+                            selectedIds
+                                ? selectedIds.includes(image.id)
+                                : selectedId === image.id
+                        )
+                            ? selectedLabel
+                            : unselectedLabel}
                     </span>
                 </button>
             ))}

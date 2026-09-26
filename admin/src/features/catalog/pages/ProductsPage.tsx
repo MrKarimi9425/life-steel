@@ -9,6 +9,7 @@ import ProductFilters from '../products/components/ProductFilters'
 import ProductFormDialog from '../products/components/ProductFormDialog'
 import ProductMediaDialog from '../products/components/ProductMediaDialog'
 import ProductTable from '../products/components/ProductTable'
+import ProductPricingDialog from '../products/components/ProductPricingDialog'
 import { useProductsPage } from '../products/useProductsPage'
 import type { Category } from '../types'
 import type { ProductListItem } from '../products/products.types'
@@ -135,6 +136,7 @@ export function ProductsPage() {
                 onClose={page.closeDialog}
                 onSaved={page.refresh}
             />
+            {page.dialog?.kind === 'pricing' && selectedProductId && <ProductPricingDialog productId={selectedProductId} languageId={page.defaultLanguageId} onClose={page.closeDialog} onSaved={page.refresh} />}
             <ProductAttributesDialog
                 attributes={page.attributesQuery.data ?? []}
                 attributesError={page.attributesQuery.error}

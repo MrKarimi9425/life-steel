@@ -2,7 +2,7 @@ import { apiFetch } from './api';
 
 export type BlogMedia = {
   id: string;
-  path: string;
+  path: string | null;
   width: number | null;
   height: number | null;
   variants: Array<{ kind: string; path: string; width: number; height: number }>;

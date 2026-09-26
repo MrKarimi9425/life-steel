@@ -25,13 +25,37 @@ import {
 } from '../dto/catalog.dto';
 import { ListProductsQueryDto } from '../dto/list-products-query.dto';
 import { CatalogService } from '../services/catalog.service';
+import { ProductPricingService } from '../services/product-pricing.service';
+import { UpdateProductPricingDto } from '../dto/product-pricing.dto';
 
 @ApiTags('Product catalog')
 @ApiBearerAuth(AUTH_BEARER_SECURITY_NAME)
 @UseGuards(AccessTokenGuard)
 @Controller({ path: 'catalog', version: '1' })
 export class CatalogController {
-  constructor(private readonly catalog: CatalogService) {}
+  constructor(
+    private readonly catalog: CatalogService,
+    private readonly pricing: ProductPricingService,
+  ) {}
+
+  @Get('products/:id/pricing')
+  async productPricing(@Param('id') id: string) {
+    return createSuccessResponse(
+      'قیمت گذاری محصول دریافت شد.',
+      await this.pricing.get(id),
+    );
+  }
+
+  @Put('products/:id/pricing')
+  async updateProductPricing(
+    @Param('id') id: string,
+    @Body() input: UpdateProductPricingDto,
+  ) {
+    return createSuccessResponse(
+      'قیمت گذاری محصول ذخیره شد.',
+      await this.pricing.update(id, input),
+    );
+  }
 
   @Get('categories')
   async categories() {

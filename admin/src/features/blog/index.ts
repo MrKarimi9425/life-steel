@@ -1,3 +1,5 @@
 export { ArticlesPage } from './pages/ArticlesPage'
 export { BlogCategoriesPage } from './pages/BlogCategoriesPage'
 export { BlogTagsPage } from './pages/BlogTagsPage'
+export { default as GalleryImageDialog } from './components/ArticleImageDialog'
+export { useArticleImageSelection as useGalleryImageSelection } from './hooks/useArticleImageSelection'

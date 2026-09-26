@@ -38,7 +38,7 @@ export default function BlockEditor({
             attributes: {
                 class: 'min-h-64 outline-none',
                 dir: direction,
-                'aria-label': 'محتوای مقاله',
+                'aria-label': 'محتوای متنی',
             },
             // Images must be selected from the owner's gallery, never pasted as URLs.
             transformPasted: (slice, view) =>
@@ -83,7 +83,7 @@ export default function BlockEditor({
                 attributes: {
                     class: 'min-h-64 outline-none',
                     dir: direction,
-                    'aria-label': 'محتوای مقاله',
+                    'aria-label': 'محتوای متنی',
                 },
             },
         })

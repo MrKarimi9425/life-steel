@@ -30,7 +30,7 @@ function markedText(node: BlogNode): ReactNode {
   }, node.text ?? '');
 }
 
-export function BlogContent({ content, media }: { content: BlogNode; media: BlogMedia[] }) {
+export function BlockContent({ content, media }: { content: BlogNode; media: BlogMedia[] }) {
   let count = 0;
   function render(node: BlogNode, key: string, depth = 0): ReactNode {
     if (++count > 10000 || depth > 32) return null;
@@ -67,3 +67,5 @@ export function BlogContent({ content, media }: { content: BlogNode; media: Blog
   }
   return <div className="article-content">{render(content, 'article')}</div>;
 }
+
+export const BlogContent = BlockContent;

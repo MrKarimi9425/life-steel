@@ -160,7 +160,7 @@ export default function BlockEditorToolbar({
             <div
                 className="flex flex-wrap gap-x-1 gap-y-2 px-2"
                 role="toolbar"
-                aria-label="ابزارهای ویرایش مقاله"
+                aria-label="ابزارهای ویرایش متن"
             >
                 {buttons.map((button) => (
                     <BlockEditorToolButton
@@ -192,7 +192,7 @@ export default function BlockEditorToolbar({
                     <LuUnlink />
                 </BlockEditorToolButton>
                 <BlockEditorToolButton
-                    title="تصویر از گالری مقاله"
+                    title="تصویر از گالری"
                     disabled={disabled || selectingImage || !canSelectImage}
                     onClick={onSelectImage}
                 >
@@ -292,7 +292,7 @@ export default function BlockEditorToolbar({
                 <div
                     className="flex flex-wrap gap-1 px-2 py-2"
                     role="toolbar"
-                    aria-label="ابزارهای جدول مقاله"
+                    aria-label="ابزارهای جدول"
                 >
                     <Button
                         size="xs"

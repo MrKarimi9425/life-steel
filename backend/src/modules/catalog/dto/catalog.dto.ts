@@ -167,6 +167,10 @@ export class CreateAttributeDto {
 export class UpdateAttributeDto extends PartialType(CreateAttributeDto) {}
 
 export class ProductTranslationDto {
+  @IsOptional()
+  @IsObject()
+  content?: Record<string, unknown>;
+
   @IsString()
   languageId!: string;
 

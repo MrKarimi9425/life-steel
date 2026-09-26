@@ -15,7 +15,7 @@ export type BlockEditorProps = {
     direction?: 'rtl' | 'ltr'
     disabled?: boolean
     invalid?: boolean
-    /** The owner supplies a picker restricted to this article's gallery. */
+    /** The owner supplies a picker restricted to its own gallery. */
     onSelectImage?: () => Promise<BlockEditorImage | null>
     onImageError?: (error: unknown) => void
 }

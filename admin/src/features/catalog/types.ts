@@ -1,9 +1,12 @@
+import type { BlockEditorContent } from '@/components/shared/BlockEditor'
+
 export type Translation = {
     languageId: string
     title: string
     slug: string
     summary?: string
     description?: string
+    content?: BlockEditorContent | null
     seoTitle?: string
     seoDescription?: string
     status?: 'DRAFT' | 'PUBLISHED'

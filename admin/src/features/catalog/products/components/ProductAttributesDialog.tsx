@@ -355,10 +355,8 @@ export default function ProductAttributesDialog({
                                                 >
                                                     بله
                                                 </Checkbox>
-                                            ) : [
-                                                  'SINGLE_SELECT',
-                                                  'COLOR',
-                                              ].includes(attribute.type) ? (
+                                            ) : attribute.type ===
+                                              'SINGLE_SELECT' ? (
                                                 <Select
                                                     isClearable
                                                     options={options}
@@ -376,8 +374,10 @@ export default function ProductAttributesDialog({
                                                         })
                                                     }
                                                 />
-                                            ) : attribute.type ===
-                                              'MULTI_SELECT' ? (
+                                            ) : [
+                                                  'MULTI_SELECT',
+                                                  'COLOR',
+                                              ].includes(attribute.type) ? (
                                                 <Select
                                                     isMulti
                                                     options={options}

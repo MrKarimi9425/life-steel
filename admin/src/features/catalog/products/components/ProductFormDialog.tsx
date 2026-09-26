@@ -15,12 +15,14 @@ import type { Language } from '@/features/languages'
 import { normalizeError } from '@/lib/errors'
 import createSlug from '@/utils/createSlug'
 import { LanguageTabs } from '../../components/LanguageTabs'
+import { GalleryImageDialog, useGalleryImageSelection } from '@/features/blog'
+import { reportError } from '@/lib/errors'
 import type { Category, Translation } from '../../types'
 import { productsApi } from '../products.api'
 import type { ProductBaseForm } from '../products.types'
 
-const RichTextEditor = lazy(
-    () => import('@/components/shared/RichTextEditor'),
+const ProductDescriptionEditor = lazy(
+    () => import('./ProductDescriptionEditor'),
 )
 
 type Props = {
@@ -39,6 +41,7 @@ const emptyTranslation = (languageId: string): Translation => ({
     slug: '',
     summary: '',
     description: '',
+    content: null,
     seoTitle: '',
     seoDescription: '',
     status: 'DRAFT',
@@ -70,6 +73,7 @@ export default function ProductFormDialog({
     onClose,
     onSaved,
 }: Props) {
+    const imageSelection = useGalleryImageSelection()
     const [activeLanguageId, setActiveLanguageId] = useState('')
     const [form, setForm] = useState<ProductBaseForm>(() => makeForm([]))
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -106,6 +110,7 @@ export default function ProductFormDialog({
                           slug: translation.slug ?? '',
                           summary: translation.summary ?? '',
                           description: translation.description ?? '',
+                          content: translation.content ?? null,
                           seoTitle: translation.seoTitle ?? '',
                           seoDescription: translation.seoDescription ?? '',
                           status: translation.status ?? 'DRAFT',
@@ -263,12 +268,17 @@ export default function ProductFormDialog({
                                 </FormItem>
                                 <FormItem label="توضیحات کامل">
                                     <Suspense fallback={<div className="min-h-40 rounded-xl border border-gray-200 dark:border-gray-700" />}>
-                                        <RichTextEditor
-                                            direction={isPersian ? 'rtl' : 'ltr'}
-                                            value={currentTranslation.description ?? ''}
-                                            onChange={(description) =>
+                                        <ProductDescriptionEditor
+                                            key={activeLanguageId}
+                                            direction={languages.find((language) => language.id === activeLanguageId)?.direction === 'LTR' ? 'ltr' : 'rtl'}
+                                            value={currentTranslation.content ?? null}
+                                            legacyDescription={currentTranslation.description ?? ''}
+                                            onSelectImage={productId ? imageSelection.select : undefined}
+                                            onImageError={reportError}
+                                            disabled={saveMutation.isPending}
+                                            onChange={(content) =>
                                                 updateTranslation({
-                                                    description,
+                                                    content,
                                                 })
                                             }
                                         />
@@ -424,6 +434,7 @@ export default function ProductFormDialog({
                     </Button>
                 </FormDialogActions>
             </Form>
+            {imageSelection.isOpen && <GalleryImageDialog title="انتخاب تصویر از گالری محصول" emptyMessage="ابتدا تصاویر را از اکشن گالری محصول بارگذاری کنید." assets={(detailQuery.data?.media ?? []).map((item) => item.media).filter((asset) => asset.kind === 'IMAGE')} languageId={activeLanguageId} onFinish={imageSelection.finish} />}
         </FormDialog>
     )
 }

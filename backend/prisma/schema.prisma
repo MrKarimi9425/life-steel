@@ -168,6 +168,7 @@ model MediaAsset {
   variants         MediaVariant[]
   translations     MediaTranslation[]
   productMedia     ProductMedia[]
+  productColorImages ProductColorImage[]
   productCovers    Product[]             @relation("ProductCover")
   categoryImages   ProductCategory[]     @relation("ProductCategoryImage")
   articleMedia     BlogArticleMedia[]
@@ -278,6 +279,8 @@ model AttributeOption {
   attribute    AttributeDefinition           @relation(fields: [attributeId], references: [id], onDelete: Cascade)
   translations AttributeOptionTranslation[]
   values       ProductAttributeOptionValue[]
+  productPrices ProductColorPrice[]
+  productImages ProductColorImage[]
 
   @@index([attributeId, isActive, displayOrder])
   @@map("attribute_options")
@@ -313,6 +316,10 @@ model Product {
   status          ContentStatus               @default(DRAFT)
   coverMediaId    String?                     @map("cover_media_id")
   isFeatured      Boolean                     @default(false) @map("is_featured")
+  showPrice       Boolean                     @default(false) @map("show_price")
+  basePrice       BigInt?                     @map("base_price")
+  colorPrices     ProductColorPrice[]
+  colorImages     ProductColorImage[]
   displayOrder    Int                         @default(0) @map("display_order")
   publishedAt     DateTime?                   @map("published_at")
   deletedAt       DateTime?                   @map("deleted_at")
@@ -338,6 +345,7 @@ model ProductTranslation {
   slug           String?           @db.VarChar(200)
   summary        String?           @db.Text
   description    String?           @db.LongText
+  content        Json?
   seoTitle       String?           @map("seo_title") @db.VarChar(255)
   seoDescription String?           @map("seo_description") @db.VarChar(500)
   status         TranslationStatus @default(DRAFT)
@@ -348,6 +356,33 @@ model ProductTranslation {
   @@unique([languageId, slug])
   @@index([languageId, status, title])
   @@map("product_translations")
+}
+
+model ProductColorPrice {
+  productId String @map("product_id")
+  optionId String @map("option_id")
+  amount BigInt
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  option AttributeOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, optionId])
+  @@index([optionId])
+  @@map("product_color_prices")
+}
+
+model ProductColorImage {
+  productId String @map("product_id")
+  optionId String @map("option_id")
+  mediaId String @map("media_id")
+  isPrimary Boolean @default(false) @map("is_primary")
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  option AttributeOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  media MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@id([productId, optionId, mediaId])
+  @@index([optionId])
+  @@index([mediaId])
+  @@map("product_color_images")
 }
 
 model ProductCategoryAssignment {

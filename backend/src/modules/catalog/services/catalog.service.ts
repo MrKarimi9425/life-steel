@@ -7,11 +7,13 @@ import {
 } from '@nestjs/common';
 import {
   ContentStatus,
-  type Prisma,
+  Prisma,
   TranslationStatus,
 } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../database/prisma/prisma.service';
 import { MediaService } from '../../media/services/media.service';
+import { validateBlogDocument } from '../../blog/utils/blog-document';
+import { ProductPricingService } from './product-pricing.service';
 import type {
   CreateAttributeDto,
   CreateCategoryDto,
@@ -34,6 +36,7 @@ export class CatalogService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly media: MediaService,
+    private readonly pricing: ProductPricingService,
   ) {}
 
   listCategories() {
@@ -383,6 +386,7 @@ export class CatalogService {
 
   async createProduct(input: CreateProductDto) {
     await this.validateProductInput(input);
+    const translations = this.prepareProductTranslations(input.translations);
     try {
       return await this.prisma.$transaction(async (transaction) => {
         const latest = await transaction.product.aggregate({
@@ -399,7 +403,7 @@ export class CatalogService {
             publishedAt:
               input.status === ContentStatus.PUBLISHED ? new Date() : null,
             translations: {
-              create: this.prepareProductTranslations(input.translations),
+              create: translations,
             },
             categories: {
               create: input.categoryIds.map((categoryId) => ({
@@ -437,6 +441,25 @@ export class CatalogService {
 
   async updateProduct(id: string, input: UpdateProductDto) {
     const existing = await this.getProduct(id);
+    const gallery = new Map(
+      existing.media
+        .filter((item) => item.media.kind === 'IMAGE' && item.media.path)
+        .map((item) => [item.mediaId, `/api/public/media/${item.media.path}`]),
+    );
+    const translations = input.translations
+      ? this.prepareProductTranslations(input.translations, gallery)
+      : undefined;
+    if (input.mediaIds) {
+      const finalIds = new Set(input.mediaIds);
+      for (const item of existing.translations) {
+        if (!item.content) continue;
+        const result = validateBlogDocument(item.content, gallery);
+        if (result.imageIds.some((id) => !finalIds.has(id)))
+          throw new BadRequestException(
+            'ابتدا تصویر را از توضیحات ذخیره شده محصول حذف کنید.',
+          );
+      }
+    }
     const finalStatus = input.status ?? existing.status;
     const finalTranslations =
       input.translations ??
@@ -486,7 +509,7 @@ export class CatalogService {
               ? {
                   translations: {
                     deleteMany: {},
-                    create: this.prepareProductTranslations(input.translations),
+                    create: translations,
                   },
                 }
               : {}),
@@ -503,6 +526,9 @@ export class CatalogService {
               : {}),
             ...(input.mediaIds
               ? {
+                  colorImages: {
+                    deleteMany: { mediaId: { notIn: input.mediaIds } },
+                  },
                   media: {
                     deleteMany: {},
                     create: input.mediaIds.map((mediaId, index) => ({
@@ -561,6 +587,22 @@ export class CatalogService {
 
   async deleteProductMedia(productId: string, mediaId: string) {
     const product = await this.getProduct(productId);
+    const gallery = new Map(
+      product.media
+        .filter((item) => item.media.kind === 'IMAGE' && item.media.path)
+        .map((item) => [item.mediaId, `/api/public/media/${item.media.path}`]),
+    );
+    for (const translation of product.translations) {
+      if (
+        translation.content &&
+        validateBlogDocument(translation.content, gallery).imageIds.includes(
+          mediaId,
+        )
+      )
+        throw new BadRequestException(
+          'ابتدا تصویر را از توضیحات همه زبان های محصول حذف و ذخیره کنید.',
+        );
+    }
     if (
       product.coverMediaId !== mediaId &&
       !product.media.some((item) => item.mediaId === mediaId)
@@ -578,6 +620,7 @@ export class CatalogService {
       data: {
         coverMediaId: nextCoverId,
         media: { deleteMany: { mediaId } },
+        colorImages: { deleteMany: { mediaId } },
       },
     });
     try {
@@ -726,7 +769,16 @@ export class CatalogService {
       }),
       this.prisma.product.count({ where }),
     ]);
-    return { items, total, page: query.page, pageSize: query.pageSize };
+    const prices = await this.pricing.publicPricings(
+      items.map((item) => item.id),
+      language.id,
+    );
+    return {
+      items: items.map((item) => ({ ...item, pricing: prices.get(item.id) })),
+      total,
+      page: query.page,
+      pageSize: query.pageSize,
+    };
   }
 
   async listPublicCategories(languageCode: string) {
@@ -779,6 +831,7 @@ export class CatalogService {
 
   async getPublicProduct(languageCode: string, slug: string) {
     const product = await this.prisma.product.findFirst({
+      omit: { basePrice: true },
       where: {
         deletedAt: null,
         status: ContentStatus.PUBLISHED,
@@ -852,7 +905,11 @@ export class CatalogService {
     const primaryCategoryId = product.categories.find(
       (assignment) => assignment.isPrimary,
     )?.categoryId;
-    if (!primaryCategoryId) return { ...product, relatedProducts: [] };
+    const pricing = await this.pricing.publicPricing(
+      product.id,
+      product.translations[0]!.languageId,
+    );
+    if (!primaryCategoryId) return { ...product, pricing, relatedProducts: [] };
 
     const relatedProducts = await this.prisma.product.findMany({
       where: {
@@ -895,7 +952,18 @@ export class CatalogService {
       },
       orderBy: [{ displayOrder: 'asc' }, { publishedAt: 'desc' }],
     });
-    return { ...product, relatedProducts };
+    const prices = await this.pricing.publicPricings(
+      relatedProducts.map((item) => item.id),
+      product.translations[0]!.languageId,
+    );
+    return {
+      ...product,
+      pricing,
+      relatedProducts: relatedProducts.map((item) => ({
+        ...item,
+        pricing: prices.get(item.id),
+      })),
+    };
   }
 
   private async createAttributeValues(
@@ -1070,7 +1138,10 @@ export class CatalogService {
     };
   }
 
-  private prepareProductTranslations(translations: ProductTranslationDto[]) {
+  private prepareProductTranslations(
+    translations: ProductTranslationDto[],
+    gallery: ReadonlyMap<string, string> = new Map(),
+  ) {
     return translations.map((translation) => {
       const title = translation.title?.trim() || null;
       const slug = translation.slug?.trim() || null;
@@ -1084,6 +1155,9 @@ export class CatalogService {
       }
       return {
         ...translation,
+        content: translation.content
+          ? validateBlogDocument(translation.content, gallery).document
+          : undefined,
         title,
         slug,
       };
