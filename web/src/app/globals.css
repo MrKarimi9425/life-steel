@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "@neshan-maps-platform/leaflet/dist/leaflet.css";
+@import "./site-content.css";
 
 :root {
   --ink: #15201d;

@@ -119,6 +119,7 @@ export class MediaService {
             productCovers: true,
             categoryImages: true,
             articleMedia: true,
+            sitePageMedia: true,
           },
         },
       },
@@ -131,7 +132,8 @@ export class MediaService {
       media._count.productMedia > 0 ||
       media._count.productCovers > 0 ||
       media._count.categoryImages > 0 ||
-      media._count.articleMedia > 0
+      media._count.articleMedia > 0 ||
+      media._count.sitePageMedia > 0
     ) {
       if (options.skipIfReferenced) return false;
       throw new BadRequestException(

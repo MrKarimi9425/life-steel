@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getLanguages, getProducts } from "@/lib/api";
 import { getBlogArticles } from "@/lib/blog";
+import { getSiteContent } from "@/lib/site-content";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
@@ -10,6 +11,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     entries.push({ url: `${site}/${language.code}`, changeFrequency: "weekly", priority: 1 });
     entries.push({ url: `${site}/${language.code}/products`, changeFrequency: "weekly", priority: 0.9 });
     entries.push({ url: `${site}/${language.code}/blog`, changeFrequency: "weekly", priority: 0.7 });
+    entries.push({ url: `${site}/${language.code}/contact`, changeFrequency: "monthly", priority: 0.6 });
+    if ((await getSiteContent(language.code))?.about) entries.push({ url: `${site}/${language.code}/about`, changeFrequency: "monthly", priority: 0.6 });
     let blogPage = 1;
     while (true) {
       const articles = await getBlogArticles(language.code, { page: String(blogPage) }, 100);

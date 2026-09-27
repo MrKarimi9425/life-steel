@@ -10,6 +10,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { LanguagesModule } from './modules/languages/languages.module';
 import { MediaModule } from './modules/media/media.module';
 import { BlogModule } from './modules/blog/blog.module';
+import { SiteContentModule } from './modules/site-content/site-content.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { BlogModule } from './modules/blog/blog.module';
     CatalogModule,
     DashboardModule,
     BlogModule,
+    SiteContentModule,
   ],
 })
 export class AppModule {}

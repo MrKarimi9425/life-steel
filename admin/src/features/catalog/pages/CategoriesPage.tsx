@@ -168,6 +168,11 @@ export function CategoriesPage() {
         (language) =>
             language.id === activeLanguageId && language.code === 'fa',
     )
+    const contentDirection =
+        languages.find((item) => item.id === activeLanguageId)?.direction ===
+        'LTR'
+            ? 'ltr'
+            : 'rtl'
     const submit = (event: FormEvent) => {
         event.preventDefault()
         if (mediaBusy || media.isPending || media.isError) return
@@ -294,7 +299,7 @@ export function CategoriesPage() {
                                             label="عنوان"
                                         >
                                             <Input
-                                                dir={isPersian ? 'rtl' : 'ltr'}
+                                                dir={contentDirection}
                                                 value={currentTranslation.title}
                                                 onChange={(event) =>
                                                     updateTranslation({
@@ -307,7 +312,7 @@ export function CategoriesPage() {
                                     </div>
                                     <FormItem label="توضیحات">
                                         <Input
-                                            dir={isPersian ? 'rtl' : 'ltr'}
+                                            dir={contentDirection}
                                             textArea
                                             rows={4}
                                             value={
@@ -324,7 +329,7 @@ export function CategoriesPage() {
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <FormItem label="عنوان SEO">
                                             <Input
-                                                dir={isPersian ? 'rtl' : 'ltr'}
+                                                dir={contentDirection}
                                                 value={
                                                     currentTranslation.seoTitle
                                                 }
@@ -338,7 +343,7 @@ export function CategoriesPage() {
                                         </FormItem>
                                         <FormItem label="توضیحات SEO">
                                             <Input
-                                                dir={isPersian ? 'rtl' : 'ltr'}
+                                                dir={contentDirection}
                                                 value={
                                                     currentTranslation.seoDescription
                                                 }

@@ -101,8 +101,8 @@ export default function ProductFormDialog({
                 '',
             translations: languages.map((language) => {
                 const translation = product.translations.find(
-                        (item) => item.languageId === language.id,
-                    )
+                    (item) => item.languageId === language.id,
+                )
                 return translation
                     ? {
                           languageId: language.id,
@@ -150,6 +150,11 @@ export default function ProductFormDialog({
     const isPersian = languages.some(
         (item) => item.id === activeLanguageId && item.code === 'fa',
     )
+    const contentDirection =
+        languages.find((item) => item.id === activeLanguageId)?.direction ===
+        'LTR'
+            ? 'ltr'
+            : 'rtl'
     const categoryTitle = (category: Category) =>
         category.translations.find(
             (item) => item.languageId === defaultLanguageId,
@@ -173,7 +178,8 @@ export default function ProductFormDialog({
     const submit = (event: FormEvent) => {
         event.preventDefault()
         const invalidIndex = form.translations.findIndex(
-            (item) => item.title?.trim() && !slugPattern.test(createSlug(item.title)),
+            (item) =>
+                item.title?.trim() && !slugPattern.test(createSlug(item.title)),
         )
         if (invalidIndex !== -1) {
             setFieldErrors({
@@ -187,29 +193,36 @@ export default function ProductFormDialog({
         setFieldErrors({})
         saveMutation.mutate()
     }
-    const validationErrors = Object.entries(fieldErrors).map(([path, message]) => {
-        const parts = path.split('.')
-        const field = parts[0] === 'translations' ? parts[2] : parts[0]
-        const labels: Record<string, string> = {
-            title: 'عنوان محصول',
-            slug: 'شناسه صفحه',
-            summary: 'خلاصه',
-            description: 'توضیحات کامل',
-            seoTitle: 'عنوان SEO',
-            seoDescription: 'توضیحات SEO',
-            sku: 'کد محصول',
-            categoryIds: 'دسته بندی های محصول',
-            primaryCategoryId: 'دسته بندی اصلی',
-        }
-        const language = parts[0] === 'translations'
-            ? languages.find((item) => item.id === form.translations[Number(parts[1])]?.languageId)
-            : undefined
-        return {
-            path,
-            label: `${labels[field] ?? field}${language ? ` (${language.name})` : ''}`,
-            message,
-        }
-    })
+    const validationErrors = Object.entries(fieldErrors).map(
+        ([path, message]) => {
+            const parts = path.split('.')
+            const field = parts[0] === 'translations' ? parts[2] : parts[0]
+            const labels: Record<string, string> = {
+                title: 'عنوان محصول',
+                slug: 'شناسه صفحه',
+                summary: 'خلاصه',
+                description: 'توضیحات کامل',
+                seoTitle: 'عنوان SEO',
+                seoDescription: 'توضیحات SEO',
+                sku: 'کد محصول',
+                categoryIds: 'دسته بندی های محصول',
+                primaryCategoryId: 'دسته بندی اصلی',
+            }
+            const language =
+                parts[0] === 'translations'
+                    ? languages.find(
+                          (item) =>
+                              item.id ===
+                              form.translations[Number(parts[1])]?.languageId,
+                      )
+                    : undefined
+            return {
+                path,
+                label: `${labels[field] ?? field}${language ? ` (${language.name})` : ''}`,
+                message,
+            }
+        },
+    )
 
     return (
         <FormDialog
@@ -221,11 +234,18 @@ export default function ProductFormDialog({
             <Form onSubmit={submit}>
                 <FormDialogBody className="space-y-5">
                     {validationErrors.length > 0 && (
-                        <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700" role="alert">
-                            <p className="font-semibold">موارد زیر را اصلاح کنید:</p>
+                        <div
+                            className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+                            role="alert"
+                        >
+                            <p className="font-semibold">
+                                موارد زیر را اصلاح کنید:
+                            </p>
                             <ul className="mt-2 list-inside list-disc space-y-1">
                                 {validationErrors.map((item) => (
-                                    <li key={item.path}>{item.label}: {item.message}</li>
+                                    <li key={item.path}>
+                                        {item.label}: {item.message}
+                                    </li>
                                 ))}
                             </ul>
                         </div>
@@ -243,7 +263,7 @@ export default function ProductFormDialog({
                                         label="عنوان محصول"
                                     >
                                         <Input
-                                            dir={isPersian ? 'rtl' : 'ltr'}
+                                            dir={contentDirection}
                                             value={currentTranslation.title}
                                             onChange={(event) =>
                                                 updateTranslation({
@@ -255,7 +275,7 @@ export default function ProductFormDialog({
                                 </div>
                                 <FormItem label="خلاصه">
                                     <Input
-                                        dir={isPersian ? 'rtl' : 'ltr'}
+                                        dir={contentDirection}
                                         textArea
                                         rows={3}
                                         value={currentTranslation.summary}
@@ -267,13 +287,35 @@ export default function ProductFormDialog({
                                     />
                                 </FormItem>
                                 <FormItem label="توضیحات کامل">
-                                    <Suspense fallback={<div className="min-h-40 rounded-xl border border-gray-200 dark:border-gray-700" />}>
+                                    <Suspense
+                                        fallback={
+                                            <div className="min-h-40 rounded-xl border border-gray-200 dark:border-gray-700" />
+                                        }
+                                    >
                                         <ProductDescriptionEditor
                                             key={activeLanguageId}
-                                            direction={languages.find((language) => language.id === activeLanguageId)?.direction === 'LTR' ? 'ltr' : 'rtl'}
-                                            value={currentTranslation.content ?? null}
-                                            legacyDescription={currentTranslation.description ?? ''}
-                                            onSelectImage={productId ? imageSelection.select : undefined}
+                                            direction={
+                                                languages.find(
+                                                    (language) =>
+                                                        language.id ===
+                                                        activeLanguageId,
+                                                )?.direction === 'LTR'
+                                                    ? 'ltr'
+                                                    : 'rtl'
+                                            }
+                                            value={
+                                                currentTranslation.content ??
+                                                null
+                                            }
+                                            legacyDescription={
+                                                currentTranslation.description ??
+                                                ''
+                                            }
+                                            onSelectImage={
+                                                productId
+                                                    ? imageSelection.select
+                                                    : undefined
+                                            }
                                             onImageError={reportError}
                                             disabled={saveMutation.isPending}
                                             onChange={(content) =>
@@ -287,7 +329,7 @@ export default function ProductFormDialog({
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <FormItem label="عنوان SEO">
                                         <Input
-                                            dir={isPersian ? 'rtl' : 'ltr'}
+                                            dir={contentDirection}
                                             value={currentTranslation.seoTitle}
                                             onChange={(event) =>
                                                 updateTranslation({
@@ -299,7 +341,7 @@ export default function ProductFormDialog({
                                     </FormItem>
                                     <FormItem label="توضیحات SEO">
                                         <Input
-                                            dir={isPersian ? 'rtl' : 'ltr'}
+                                            dir={contentDirection}
                                             value={
                                                 currentTranslation.seoDescription
                                             }
@@ -328,8 +370,8 @@ export default function ProductFormDialog({
                                     انتشار این ترجمه در سایت
                                 </Checkbox>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    این زبان فقط زمانی در سایت نمایش داده می شود که
-                                    خود محصول نیز منتشر شده باشد.
+                                    این زبان فقط زمانی در سایت نمایش داده می شود
+                                    که خود محصول نیز منتشر شده باشد.
                                 </p>
                             </div>
                         )}
@@ -434,7 +476,17 @@ export default function ProductFormDialog({
                     </Button>
                 </FormDialogActions>
             </Form>
-            {imageSelection.isOpen && <GalleryImageDialog title="انتخاب تصویر از گالری محصول" emptyMessage="ابتدا تصاویر را از اکشن گالری محصول بارگذاری کنید." assets={(detailQuery.data?.media ?? []).map((item) => item.media).filter((asset) => asset.kind === 'IMAGE')} languageId={activeLanguageId} onFinish={imageSelection.finish} />}
+            {imageSelection.isOpen && (
+                <GalleryImageDialog
+                    title="انتخاب تصویر از گالری محصول"
+                    emptyMessage="ابتدا تصاویر را از اکشن گالری محصول بارگذاری کنید."
+                    assets={(detailQuery.data?.media ?? [])
+                        .map((item) => item.media)
+                        .filter((asset) => asset.kind === 'IMAGE')}
+                    languageId={activeLanguageId}
+                    onFinish={imageSelection.finish}
+                />
+            )}
         </FormDialog>
     )
 }

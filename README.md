@@ -8,7 +8,11 @@
 
 ## وضعیت فعلی
 
-فاز اول شامل ورود مدیران با شماره تلفن و رمز عبور، تغییر اجباری رمز موقت، مدیریت مدیران، زبان ها، عبارت های رابط سایت، کتابخانه رسانه، دسته بندی ها، ویژگی های قابل تعریف، محصولات و سایت موقت است. فروش آنلاین وجود ندارد. پروژه ها، وبلاگ، صفحات و منو، فرم تماس و سایت نهایی مربوط به فازهای بعدی هستند و هنوز پیاده سازی نشده اند.
+ورود مدیران، زبان ها، عبارت های رابط، دسته بندی ها، ویژگی ها، محصولات با قیمت رنگ ها و گالری اختصاصی، وبلاگ با ویرایشگر بلوکی، درباره ما، راه های ارتباطی، نقشه و پیام های فرم تماس پیاده سازی شده اند. پنل فارسی و راست چین است؛ جهت فیلدهای ترجمه از تنظیم زبان خوانده میشود. فروش آنلاین وجود ندارد و طراحی نهایی سایت هنوز مرحله بعدی است.
+
+بخش محتوای سایت در پنل شامل مسیرهای `/site/about`، `/site/contacts` و `/site/messages` است. درباره ما گالری اختصاصی و SEO دارد و انتشار آن دستی است. راه های ارتباطی محدودیت تعداد ندارند و از نوع تلفن، ایمیل، نشانی، ساعت کاری یا لینک هستند. موقعیت با عرض و طول جغرافیایی تنظیم میشود؛ خالی بودن هر دو مختصات نقشه را مخفی میکند.
+
+The localized `/{locale}/about` and `/{locale}/contact` pages use Neshan's Leaflet SDK. Configure `VITE_NESHAN_WEB_API_KEY` in `admin/.env.local` and `NEXT_PUBLIC_NESHAN_WEB_API_KEY` in `web/.env.local`; these files are ignored by Git. Example environment files contain no real keys. Web map keys are necessarily visible in client bundles: restrict permitted domains in Neshan's panel and maintain sufficient account credit. About content is edited directly on its admin page; its gallery has an independent dialog. Admin location selection uses map clicks rather than coordinate inputs. Desktop map links open Balad; Android uses `geo:` and iOS uses Apple Maps, with actual app handling determined by the device. Map attribution must remain visible. Define public contact-form rate limits before deployment.
 
 ## راه اندازی محلی
 
@@ -23,4 +27,4 @@
 
 در هر برنامه `npm run build` و `npm run lint` قابل اجرا است. تست های backend با `npm test -- --runInBand` اجرا می شوند. مستندات API پس از اجرای backend در `http://localhost:3000/api/docs` قرار دارد.
 
-تا زمانی که فایل محیطی واقعی و پایگاه داده در دسترس نباشد، مهاجرت و آزمون سرتاسری اجرا نشده است.
+مهاجرت جدید محتوای سایت با `npx prisma migrate deploy` اعمال میشود. برای آزمون محلی، اطلاعات درباره ما، راه های تماس و مختصات را از پنل تکمیل کنید؛ اطلاعات واقعی در فایل نمونه محیطی قرار ندهید.

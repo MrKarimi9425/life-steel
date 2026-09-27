@@ -38,7 +38,7 @@ export default async function ProductPage({ params }: { params: Params }) {
 
   return (
     <main className="product-detail">
-      <ProductIntro pricing={product.pricing} locale={locale} gallery={gallery} coverMedia={product.coverMedia} title={translation.title} footer={<a className="button primary" href="#contact">{isFa ? "درخواست مشاوره" : "Request consultation"}</a>}>
+      <ProductIntro pricing={product.pricing} locale={locale} gallery={gallery} coverMedia={product.coverMedia} title={translation.title} footer={<a className="button primary" href={`/${locale}/contact`}>{isFa ? "درخواست مشاوره" : "Request consultation"}</a>}>
           <span key="category" className="eyebrow">{product.categories.find((item) => item.isPrimary)?.category.translations[0]?.title ?? "LIFE STEEL"}</span>
           <h1 key="title">{translation.title}</h1>
           {product.sku && <p key="sku" className="sku">SKU / {product.sku}</p>}

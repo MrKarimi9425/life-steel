@@ -61,6 +61,98 @@ enum AttributeType {
   COLOR
 }
 
+enum ContactInformationType {
+  PHONE
+  EMAIL
+  ADDRESS
+  HOURS
+  LINK
+}
+
+enum ContactMessageStatus {
+  NEW
+  READ
+  FOLLOWED_UP
+}
+
+model SitePage {
+  id String @id @default(cuid())
+  key String @unique @db.VarChar(30)
+  isPublished Boolean @default(false) @map("is_published")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  translations SitePageTranslation[]
+  media SitePageMedia[]
+  @@map("site_pages")
+}
+
+model SitePageTranslation {
+  pageId String @map("page_id")
+  languageId String @map("language_id")
+  title String @db.VarChar(255)
+  content Json
+  seoTitle String? @map("seo_title") @db.VarChar(255)
+  seoDescription String? @map("seo_description") @db.VarChar(500)
+  page SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  @@id([pageId, languageId])
+  @@index([languageId])
+  @@map("site_page_translations")
+}
+
+model SitePageMedia {
+  pageId String @map("page_id")
+  mediaId String @map("media_id")
+  displayOrder Int @default(0) @map("display_order")
+  page SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  media MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  @@id([pageId, mediaId])
+  @@index([mediaId])
+  @@map("site_page_media")
+}
+
+model ContactInformation {
+  id String @id @default(cuid())
+  type ContactInformationType
+  isActive Boolean @default(true) @map("is_active")
+  displayOrder Int @default(0) @map("display_order")
+  translations ContactInformationTranslation[]
+  @@map("contact_information")
+}
+
+model ContactInformationTranslation {
+  contactId String @map("contact_id")
+  languageId String @map("language_id")
+  title String @db.VarChar(150)
+  value String @db.VarChar(2000)
+  contact ContactInformation @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  @@id([contactId, languageId])
+  @@index([languageId])
+  @@map("contact_information_translations")
+}
+
+model SiteLocation {
+  id String @id @default("main")
+  latitude Float?
+  longitude Float?
+  @@map("site_locations")
+}
+
+model ContactMessage {
+  id String @id @default(cuid())
+  name String @db.VarChar(150)
+  phone String @db.VarChar(30)
+  email String? @db.VarChar(255)
+  subject String @db.VarChar(200)
+  message String @db.Text
+  status ContactMessageStatus @default(NEW)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  @@index([status, createdAt])
+  @@map("contact_messages")
+}
+
 model Admin {
   id                 String         @id @default(cuid())
   firstName          String         @map("first_name") @db.VarChar(80)
@@ -119,6 +211,8 @@ model Language {
   articleTranslations      BlogArticleTranslation[]
   blogCategoryTranslations BlogCategoryTranslation[]
   blogTagTranslations      BlogTagTranslation[]
+  sitePageTranslations SitePageTranslation[]
+  contactTranslations ContactInformationTranslation[]
 
   @@index([isActive, displayOrder])
   @@map("languages")
@@ -169,6 +263,7 @@ model MediaAsset {
   translations     MediaTranslation[]
   productMedia     ProductMedia[]
   productColorImages ProductColorImage[]
+  sitePageMedia SitePageMedia[]
   productCovers    Product[]             @relation("ProductCover")
   categoryImages   ProductCategory[]     @relation("ProductCategoryImage")
   articleMedia     BlogArticleMedia[]

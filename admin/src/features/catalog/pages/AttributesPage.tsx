@@ -214,6 +214,11 @@ export function AttributesPage() {
         (language) =>
             language.id === activeLanguageId && language.code === 'fa',
     )
+    const contentDirection =
+        languages.find((item) => item.id === activeLanguageId)?.direction ===
+        'LTR'
+            ? 'ltr'
+            : 'rtl'
     const updateTranslation = (
         patch: Partial<NonNullable<typeof currentTranslation>>,
     ) =>
@@ -373,7 +378,7 @@ export function AttributesPage() {
                                         label="نام ویژگی"
                                     >
                                         <Input
-                                            dir={isPersian ? 'rtl' : 'ltr'}
+                                            dir={contentDirection}
                                             value={currentTranslation.name}
                                             onChange={(event) =>
                                                 updateTranslation({
@@ -384,7 +389,7 @@ export function AttributesPage() {
                                     </FormItem>
                                     <FormItem label="واحد">
                                         <Input
-                                            dir={isPersian ? 'rtl' : 'ltr'}
+                                            dir={contentDirection}
                                             placeholder="مانند سانتی متر"
                                             value={currentTranslation.unitLabel}
                                             onChange={(event) =>
@@ -400,7 +405,7 @@ export function AttributesPage() {
                                         label="توضیح"
                                     >
                                         <Input
-                                            dir={isPersian ? 'rtl' : 'ltr'}
+                                            dir={contentDirection}
                                             textArea
                                             rows={3}
                                             value={
@@ -584,11 +589,7 @@ export function AttributesPage() {
                                         >
                                             <FormItem label="عنوان گزینه">
                                                 <Input
-                                                    dir={
-                                                        isPersian
-                                                            ? 'rtl'
-                                                            : 'ltr'
-                                                    }
+                                                    dir={contentDirection}
                                                     placeholder={
                                                         languages.find(
                                                             (item) =>
