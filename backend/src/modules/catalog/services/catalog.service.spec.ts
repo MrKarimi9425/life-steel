@@ -21,6 +21,35 @@ const baseProduct = (): CreateProductDto => ({
 });
 
 describe('CatalogService product rules', () => {
+  it.each([false, 'error'])(
+    'reports incomplete cleanup after deleting a product: %s',
+    async (outcome) => {
+      const remove =
+        outcome === 'error'
+          ? jest.fn().mockRejectedValue(new Error('Storage unavailable'))
+          : jest.fn().mockResolvedValue(false);
+      const transaction = {
+        product: { delete: jest.fn().mockResolvedValue({}) },
+      };
+      const service = new CatalogService(
+        {
+          $transaction: (callback: (client: typeof transaction) => unknown) =>
+            callback(transaction),
+        } as unknown as PrismaService,
+        { remove } as unknown as MediaService,
+        {} as ProductPricingService,
+      );
+      jest.spyOn(service, 'getProduct').mockResolvedValue({
+        coverMediaId: 'image',
+        media: [],
+        attributeValues: [],
+      } as never);
+      expect(await service.deleteProduct('product')).toEqual({
+        cleanupComplete: false,
+      });
+      expect(transaction.product.delete).toHaveBeenCalled();
+    },
+  );
   it('reorders visible products without moving hidden page records', async () => {
     const products = ['a', 'b', 'c', 'd'].map((id) => ({ id }));
     const update = jest.fn(

@@ -4,6 +4,12 @@ Product pages compose reusable dialogs and table actions in the catalog feature.
 Pricing is managed through a separate table action and does not lengthen the
 main product form.
 
+Product media creation and updates reject unready files and files owned by
+another product, article, About page or category. Existing media belonging to
+the same product may be retained. Permanent product deletion returns
+`cleanupComplete`; the panel suppresses the generic success toast and shows
+a warning when file cleanup is incomplete, otherwise a success notification.
+
 ## Pricing
 
 `GET/PUT catalog/products/:id/pricing` reads and replaces the pricing configuration.

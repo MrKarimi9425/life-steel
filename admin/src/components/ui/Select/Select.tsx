@@ -1,7 +1,7 @@
 import ArrowDown02Icon from '@/assets/icons/iconsax/linear/arrow-down-02.svg?react'
 import CloseCircleIcon from '@/assets/icons/iconsax/linear/close-circle.svg?react'
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { forwardRef } from 'react'
+import { forwardRef, useRef } from 'react'
 import ReactSelect from 'react-select'
 import classNames from '../utils/classNames'
 import { useConfig } from '../ConfigProvider'
@@ -75,6 +75,9 @@ function SelectInner<
         className,
         classNames: selectClassNames,
         invalid,
+        onKeyDown,
+        onMenuOpen,
+        onMenuClose,
         placeholder = 'انتخاب کنید',
         ...rest
     } = props
@@ -84,6 +87,7 @@ function SelectInner<
     const inputGroupSize = useInputGroup()?.size
     const selectSize = size || inputGroupSize || formControlSize || controlSize
     const isSelectInvalid = invalid || formItemInvalid
+    const menuOpen = useRef(false)
 
     return (
         <ReactSelect<Option, IsMulti, Group>
@@ -164,6 +168,20 @@ function SelectInner<
             }}
             placeholder={placeholder}
             {...rest}
+            onMenuOpen={() => {
+                menuOpen.current = true
+                onMenuOpen?.()
+            }}
+            onMenuClose={() => {
+                menuOpen.current = false
+                onMenuClose?.()
+            }}
+            onKeyDown={(event) => {
+                onKeyDown?.(event)
+                if (event.key === 'Escape' && (rest.menuIsOpen ?? menuOpen.current)) {
+                    event.stopPropagation()
+                }
+            }}
         />
     )
 }

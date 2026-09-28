@@ -194,7 +194,7 @@ a.contact-item:hover .contact-item-arrow {
 .contact-field textarea:focus {
   outline: none;
   border-color: var(--green);
-  box-shadow: 0 0 0 3px #1d4f4312;
+  box-shadow: 0 0 0 3px #f7791026;
 }
 .contact-field [aria-invalid="true"] {
   border-color: #bd3d35;
@@ -425,13 +425,7 @@ a.contact-item:hover .contact-item-arrow {
   height: 290px;
   flex-shrink: 0;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    #697871,
-    #f5f8f5 35%,
-    #9ca9a0 75%,
-    #63746a
-  );
+  background: linear-gradient(90deg, #697871, #f5f8f5 35%, #9ca9a0 75%, #63746a);
   box-shadow: 10px 12px 16px #15201d25;
   transform: rotate(12deg);
 }

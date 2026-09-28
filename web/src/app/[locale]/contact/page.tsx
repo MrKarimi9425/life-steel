@@ -6,10 +6,5 @@ export async function generateMetadata({ params }: Props) {
 }
 export default async function ContactPage({ params }: Props) {
   const { locale } = await params;
-  return (
-    <ContactPageContent
-      content={await getSiteContent(locale)}
-      locale={locale}
-    />
-  );
+  return <ContactPageContent content={await getSiteContent(locale)} locale={locale} />;
 }

@@ -27,8 +27,9 @@ the examples documented below.
 
 The admin is a client of the backend API. It does not define business rules, invent API contracts, or provide authorization by itself. Backend guards remain the authorization boundary.
 
-The interface is Persian and RTL. Role codes are dynamic; navigation and
-actions use permissions returned by the backend.
+The interface is Persian and RTL. Translation fields use the configured language
+direction without changing the surrounding form. Staff accounts are OWNER or
+ADMIN; only owner administration has an additional owner boundary.
 
 ## Source structure
 
@@ -55,8 +56,9 @@ Only directories with an active implementation exist.
 `app/providers/AppProviders.tsx` composes React Query, the render error boundary, Browser Router, session synchronization, and toast notifications.
 
 `app/router/AppRouter.tsx` defines all routes. `ProtectedRoute` bootstraps the
-current principal. `PermissionRoute` limits client-side navigation by
-permission but does not replace backend authorization.
+current principal. `OwnerRoute` limits access to administrator management but
+does not replace backend authorization. Required password changes are enforced
+by both the route guard and the backend.
 
 ## Layouts
 
@@ -75,17 +77,18 @@ Current features:
 
 - `auth`
 - `dashboard`
-- `clients`
 - `account-settings`
-- `roles-permissions`
-- `service-offerings`
-- `event-types`
+- `admins`
+- `languages`
+- `catalog`
+- `blog`
+- `site-content`
+- `media` (owner-scoped upload infrastructure, not a public library page)
 
-Service offerings and event types use shared table, dialog, validation, pagination,
-and drag-ordering patterns. React Query owns their server state and invalidates
-the relevant list after mutations.
-
-The route label remains "Users", while the source feature is named `clients` because it consumes the backend client-account resource.
+Catalog, blog and contact resources reuse shared tables, dialogs, validation,
+pagination and drag-ordering components where persisted ordering is meaningful.
+Messages remain date ordered. The About page composes its form directly rather
+than adding an unnecessary edit dialog or preview.
 
 ## State ownership
 
@@ -97,7 +100,8 @@ The route label remains "Users", while the source feature is named `clients` bec
 
 API data is not copied into Zustand. Modal visibility and similar local behavior are not promoted to a global store.
 
-Resource libraries use explicit server-side pagination. Pages expose visible
+Products, articles and messages use server-side pagination; complete collections
+such as contact channels use local filtering and pagination. Pages expose visible
 page buttons and a page-size selector; changing search, filters, or page size
 resets the page index to one. Query keys include the effective page index,
 page size, search, and filters. Infinite queries and intersection observers are

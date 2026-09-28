@@ -67,6 +67,43 @@ export class MediaService {
     }
   }
 
+  async assertProductMedia(ids: string[], productId?: string) {
+    const uniqueIds = [...new Set(ids)];
+    if (!uniqueIds.length) return;
+    const assets = await this.prisma.mediaAsset.findMany({
+      where: {
+        id: { in: uniqueIds },
+        processingStatus: MediaProcessingStatus.READY,
+      },
+      include: {
+        productMedia: { select: { productId: true } },
+        productCovers: { select: { id: true } },
+        _count: {
+          select: {
+            articleMedia: true,
+            sitePageMedia: true,
+            categoryImages: true,
+          },
+        },
+      },
+    });
+    if (
+      assets.length !== uniqueIds.length ||
+      assets.some(
+        (asset) =>
+          !asset.path ||
+          asset._count.articleMedia > 0 ||
+          asset._count.sitePageMedia > 0 ||
+          asset._count.categoryImages > 0 ||
+          asset.productMedia.some((item) => item.productId !== productId) ||
+          asset.productCovers.some((item) => item.id !== productId),
+      )
+    )
+      throw new BadRequestException(
+        'فایل آماده نیست یا متعلق به گالری دیگری است.',
+      );
+  }
+
   createExternalVideo(url: string, title: string) {
     return this.prisma.mediaAsset.create({
       data: {

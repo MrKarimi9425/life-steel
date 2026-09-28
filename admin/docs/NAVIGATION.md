@@ -1,55 +1,42 @@
-# Dashboard Navigation
+# Dashboard navigation
 
 ## Layout
 
-The desktop dashboard uses the source template's `LAYOUT_COLLAPSIBLE_SIDE` layout. The sidebar is 290 pixels wide when expanded and 80 pixels wide when collapsed. The header menu button switches between these states. The collapsed state displays only item icons; the expanded state displays navigation group and item labels. On smaller screens, the same navigation content is rendered inside a right-side drawer.
+The panel remains Persian and RTL. Content-language selection changes only the
+direction of translated fields and editors, using the language's direction
+setting; it does not flip navigation or the surrounding form.
 
-The active layout uses the copied source-template chain:
+The copied `LAYOUT_COLLAPSIBLE_SIDE` chain uses an expanded/collapsed desktop
+sidebar and a mobile drawer:
 
-- `components/layouts/PostLoginLayout/components/CollapsibleSide.tsx` composes the sidebar, header, and mobile navigation.
-- `components/layouts/components/SideNav.tsx` renders the desktop sidebar.
-- `components/layouts/components/MobileNav.tsx` renders the mobile drawer.
-- `components/layouts/components/SideNavToggle.tsx` controls the shared collapsed state.
-- `components/layouts/components/VerticalMenuContent` renders the menu tree.
-- `configs/navigation.config/index.ts` defines labels, routes, permissions, and icons.
-- `store/themeStore.ts` owns the collapsed state shared by the copied components.
+- `components/layouts/PostLoginLayout/components/CollapsibleSide.tsx`
+- `components/layouts/components/SideNav.tsx`, `MobileNav.tsx`,
+  `SideNavToggle.tsx` and `VerticalMenuContent`
+- `store/themeStore.ts`
+- `configs/navigation.config/index.ts`
 
-## SVG icons
+The header and sidebar remain outside the content scroll area.
+`ListPageLayout` allows desktop list scrolling; on mobile the page heading,
+filters, cards and pagination scroll together.
 
-Sidebar SVG files live in `public/img/icons/sidebar`. Navigation entries reference a file with an icon source object:
+## Active routes
 
-```ts
-{
-    key: 'users',
-    title: 'Users',
-    path: '/users',
-    icon: '/img/icons/sidebar/users.svg',
-    type: 'item',
-}
-```
+| Group | Routes |
+| --- | --- |
+| Dashboard | `/` |
+| Catalog | `/products`, `/product-categories`, `/product-attributes` |
+| Blog | `/blog/articles`, `/blog/categories`, `/blog/tags` |
+| Site content | `/site/about`, `/site/contacts`, `/site/messages` |
+| Settings | `/languages`, `/interface-phrases`, `/admins` |
 
-The SVG is rendered as a CSS mask so it inherits the menu item's current color, including active and hover states. Monochrome SVG artwork is therefore the preferred format. The SVG must include a `viewBox` and should not depend on embedded raster images.
+The administrators route and navigation item are owner-only. There are no
+profile, media-library, membership-request or role-management routes.
+The account dropdown opens password change; required password change has its
+own protected `/change-password` route.
 
-To replace an existing icon without changing code, overwrite the corresponding file while keeping its filename. To add a new icon, place the SVG in the same directory and reference its public path in `configs/navigation.config/index.ts`.
+## Icons and composition
 
-The account category contains the profile route:
-
-- `/personal-information` for the profile form, guarded by `Profile:view`
-
-Password setup and change are opened as a modal from the account dropdown and
-do not have a dedicated route.
-
-The account category is collapsible while the full sidebar is open. When the
-sidebar itself is collapsed, child icons remain directly accessible.
-
-The management category is also collapsible and contains the permission-filtered
-user, membership-request, and role-management routes. `/access-requests` requires
-`AccessRequest:view`; its menu item displays the server-provided pending count.
-
-The dashboard shell keeps the header and sidebar outside the scrolling region.
-Only the content area below the header scrolls. Every dashboard route uses the
-same contained width and responsive page gutter.
-
-The dashboard item currently uses `test.svg` as a visible integration example. It can be overwritten with another monochrome SVG or changed to another file path.
-
-The inline `DashboardIconName` values remain available for header controls and for navigation entries that do not use an external SVG file.
+The active configuration imports Iconsax SVG components with SVGR's `?react`
+suffix and stores components in navigation entries. Reuse the existing icon
+and layout system rather than adding a runtime icon registry or reconstructing
+the sidebar. Page actions use a wrapping flex group with an explicit gap.

@@ -34,8 +34,7 @@ export function LocationMap({
             const destination = /Android/i.test(ua)
               ? links.android
               : /iPad|iPhone|iPod/i.test(ua) ||
-                  (navigator.platform === "MacIntel" &&
-                    navigator.maxTouchPoints > 1)
+                  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
                 ? links.apple
                 : null;
             if (destination) {

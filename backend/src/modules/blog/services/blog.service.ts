@@ -251,7 +251,8 @@ export class BlogService {
           asset.articleMedia.some((item) => item.articleId !== id) ||
           asset._count.productMedia ||
           asset._count.productCovers ||
-          asset._count.categoryImages,
+          asset._count.categoryImages ||
+          asset._count.sitePageMedia,
       )
     )
       throw new BadRequestException(

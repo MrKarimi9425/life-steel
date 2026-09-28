@@ -29,12 +29,12 @@ Only required folders are created. A page is a route entry and composes feature 
 ## New screen workflow
 
 1. Confirm the backend contract.
-2. Find the corresponding source-template screen.
-3. Copy or compose the required source UI.
+2. Read the reusable panel guide and find a corresponding current panel screen.
+3. Reuse the copied UI components; consult the source template only for a missing pattern.
 4. Add feature API functions and React Query hooks.
 5. Add Formik and Yup for forms.
 6. Route errors through the shared error layer.
-7. Add the route and role boundary.
+7. Add the protected route and an owner boundary only when the contract requires it.
 8. Validate the active states.
 
 ## Structural refactoring
@@ -58,3 +58,7 @@ The admin currently has no automated UI test framework. Structural and interacti
 - error routing: `docs/ERROR_HANDLING.md`
 - source-template rules: `docs/UI_SOURCE.md`
 - folder and dependency architecture: `ARCHITECTURE.md`
+- reusable page, table and form contracts: `../../docs/admin-panel-development-guide.md`
+- catalog behavior: `docs/PRODUCTS.md`
+- blog behavior: `docs/BLOG.md` and `docs/BLOCK_EDITOR.md`
+- About, contact channels, maps and messages: `docs/SITE_CONTENT.md`

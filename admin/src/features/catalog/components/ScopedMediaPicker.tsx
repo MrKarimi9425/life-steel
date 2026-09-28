@@ -216,7 +216,7 @@ export default function ScopedMediaPicker({
             <CropImageDialog
                 file={imageQueue[0] ?? null}
                 fileCount={batchSize}
-                fileIndex={batchSize - imageQueue.length + 1}
+                fileIndex={Math.min(batchSize, batchSize - imageQueue.length + 1)}
                 progress={progress}
                 onClose={() => setImageQueue([])}
                 onSkip={() => setImageQueue((current) => current.slice(1))}

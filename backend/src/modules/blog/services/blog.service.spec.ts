@@ -42,6 +42,35 @@ function setup() {
   };
 }
 describe('Blog publication', () => {
+  it('rejects About-owned images before updating the article gallery', async () => {
+    const repository = {
+      article: jest.fn().mockResolvedValue({ media: [], coverMediaId: null }),
+      media: jest.fn().mockResolvedValue([
+        {
+          id: 'image',
+          path: 'image/optimized.webp',
+          kind: 'IMAGE',
+          processingStatus: 'READY',
+          articleMedia: [],
+          _count: {
+            productMedia: 0,
+            productCovers: 0,
+            categoryImages: 0,
+            sitePageMedia: 1,
+          },
+        },
+      ]),
+      updateArticle: jest.fn(),
+    };
+    const service = new BlogService(
+      repository as unknown as BlogRepository,
+      {} as MediaService,
+    );
+    await expect(
+      service.gallery('article', { mediaIds: ['image'] }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(repository.updateArticle).not.toHaveBeenCalled();
+  });
   it('creates Persian drafts without category or nonempty body', async () => {
     const { service, repository } = setup();
     await service.create(form());

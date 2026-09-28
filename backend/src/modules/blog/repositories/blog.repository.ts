@@ -278,6 +278,7 @@ export class BlogRepository {
             productMedia: true,
             productCovers: true,
             categoryImages: true,
+            sitePageMedia: true,
           },
         },
       },

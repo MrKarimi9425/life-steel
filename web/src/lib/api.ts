@@ -1,3 +1,5 @@
+import { cache } from "react";
+
 export type Language = {
   code: string;
   name: string;
@@ -6,8 +8,8 @@ export type Language = {
   isDefault: boolean;
 };
 
-import type { BlogNode } from './blog';
-import type { PublicPricing } from './product-pricing';
+import type { BlogNode } from "./blog";
+import type { PublicPricing } from "./product-pricing";
 
 export type Media = {
   id: string;
@@ -88,7 +90,9 @@ export async function getLanguages(): Promise<Language[]> {
 }
 
 export async function getPhrases(locale: string): Promise<Record<string, string>> {
-  return (await apiFetch<Record<string, string>>(`public/languages/${locale}/interface-phrases`)) ?? {};
+  return (
+    (await apiFetch<Record<string, string>>(`public/languages/${locale}/interface-phrases`)) ?? {}
+  );
 }
 
 export type ProductList = {
@@ -99,7 +103,11 @@ export type ProductList = {
 };
 
 export type ProductFilters = {
-  categories: Array<{ id: string; translations: Array<{ title: string; slug: string }> }>;
+  categories: Array<{
+    id: string;
+    image: { kind: "IMAGE" | "VIDEO"; path: string | null } | null;
+    translations: Array<{ title: string; slug: string }>;
+  }>;
   attributes: Array<{
     id: string;
     type: string;
@@ -113,17 +121,29 @@ export async function getProducts(
   filters: Record<string, string> = {},
 ): Promise<ProductList> {
   const params = new URLSearchParams({ language: locale, pageSize: "12", ...filters });
-  return (await apiFetch<ProductList>(`public/products?${params.toString()}`)) ?? {
-    items: [], total: 0, page: 1, pageSize: 12,
-  };
+  return (
+    (await apiFetch<ProductList>(`public/products?${params.toString()}`)) ?? {
+      items: [],
+      total: 0,
+      page: 1,
+      pageSize: 12,
+    }
+  );
 }
+
+export const getProductCategories = cache(
+  async (locale: string): Promise<ProductFilters["categories"]> =>
+    (await apiFetch<ProductFilters["categories"]>(
+      `public/products/categories/${encodeURIComponent(locale)}`,
+    )) ?? [],
+);
 
 export async function getProductFilters(locale: string): Promise<ProductFilters> {
   const [categories, attributes] = await Promise.all([
-    apiFetch<ProductFilters["categories"]>(`public/products/categories/${encodeURIComponent(locale)}`),
+    getProductCategories(locale),
     apiFetch<ProductFilters["attributes"]>(`public/products/filters/${encodeURIComponent(locale)}`),
   ]);
-  return { categories: categories ?? [], attributes: attributes ?? [] };
+  return { categories, attributes: attributes ?? [] };
 }
 
 export function getProduct(locale: string, slug: string): Promise<ProductDetailData | null> {

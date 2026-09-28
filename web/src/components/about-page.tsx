@@ -46,11 +46,7 @@ export function AboutPageContent({
             <div className="blog-content">
               <BlockContent content={about.content} media={about.media} />
             </div>
-            <BlogGallery
-              images={about.media}
-              locale={locale}
-              title={about.title}
-            />
+            <BlogGallery images={about.media} locale={locale} title={about.title} />
           </>
         ) : (
           <p>{t.noAbout}</p>

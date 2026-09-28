@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toast } from 'react-toastify'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '@/lib/http/api-client'
 import type { ApiResponse } from '@/lib/http/api.types'
@@ -77,7 +78,12 @@ export function useProductsPage() {
     })
     const deleteMutation = useMutation({
         mutationFn: productsApi.remove,
-        onSuccess: () => {
+        meta: { suppressGlobalSuccess: true },
+        onSuccess: (data) => {
+            if (data.cleanupComplete)
+                toast.success('محصول و تصاویر آن برای همیشه حذف شدند.')
+            else
+                toast.warning('محصول حذف شد، اما پاکسازی برخی فایل ها کامل نشد.')
             void refresh()
             void client.invalidateQueries({ queryKey: ['media'] })
         },

@@ -4,8 +4,7 @@ const copy = {
     mapUnavailable: "بارگذاری نقشه انجام نشد. از لینک نقشه استفاده کنید.",
     about: "درباره ما",
     contact: "در ارتباط باشیم",
-    intro:
-      "برای انتخاب محصول، دریافت اطلاعات یا صحبت درباره پروژه شما، از اینجا شروع کنیم.",
+    intro: "برای انتخاب محصول، دریافت اطلاعات یا صحبت درباره پروژه شما، از اینجا شروع کنیم.",
     details: "راه های ارتباطی",
     formTitle: "از پروژه شما بشنویم.",
     formIntro: "پیام خود را بنویسید؛ ما از طریق اطلاعات تماس شما پاسخ میدهیم.",
@@ -37,8 +36,7 @@ const copy = {
       "Choosing a product, exploring the details, or planning your project? Start a conversation here.",
     details: "Get in touch",
     formTitle: "Tell us about your project.",
-    formIntro:
-      "Leave a message and your contact details so we can get back to you.",
+    formIntro: "Leave a message and your contact details so we can get back to you.",
     name: "Full name",
     phone: "Phone number",
     email: "Email (optional)",
@@ -97,9 +95,7 @@ export function contactHref(item: ContactInformation) {
   if (item.type === "LINK") {
     try {
       const url = new URL(item.value);
-      return ["https:", "http:"].includes(url.protocol) &&
-        !url.username &&
-        !url.password
+      return ["https:", "http:"].includes(url.protocol) && !url.username && !url.password
         ? url.href
         : undefined;
     } catch {

@@ -99,7 +99,9 @@ export const productsApi = {
     archive(id: string) {
         return apiClient.post(`catalog/products/${id}/archive`)
     },
-    remove(id: string) {
-        return apiClient.delete(`catalog/products/${id}`)
+    async remove(id: string) {
+        const response = await apiClient.delete<ApiResponse<{ cleanupComplete: boolean }>>(`catalog/products/${id}`)
+        if (!response.data.data) throw new Error('نتیجه حذف محصول دریافت نشد.')
+        return response.data.data
     },
 }

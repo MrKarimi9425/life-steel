@@ -5,15 +5,14 @@
 All visual implementation is sourced from:
 
 ```text
-<!-- C:\Projects\ecme-web-application-update-1.3.10\Theme\TypeScript\main -->
-C:\Users\User\Downloads\ecme-web-application-update-1.3.10\Theme\TypeScript\main
+C:\Projects\ecme-web-application-update-1.3.10\Theme\TypeScript\main
 ```
 
 The source project is the authority for component appearance, spacing, responsive behavior, animation, and interaction.
 
 ## Copy workflow
 
-1. Find the matching source page or component.
+1. Find the matching current panel page or copied component first.
 2. Identify the primitive components, assets, styles, and dependencies it uses.
 3. Reuse an existing copied primitive when the admin already contains the same source component.
 4. Copy only the required source implementation.
@@ -36,8 +35,9 @@ as menu collapse, sticky positioning, dropdown alignment, loading states, and
 responsive transitions. A behavior being simple does not permit writing a
 local substitute.
 
-Before editing UI code, the matching source file must be opened and its
-dependency chain inspected. If the template already implements the requested
+Before adding a missing visual pattern, the matching source file must be opened
+and its dependency chain inspected. Existing panel forms remain the reference
+for implemented patterns and spacing. If the template already implements the requested
 behavior, that implementation and its primitives must be copied. If no matching
 implementation can be found, work stops for clarification; a new visual
 implementation is not created by default.
@@ -56,7 +56,7 @@ screenshot appears close.
 
 The source component tree is also part of the UI contract. Component names,
 boundaries, ordering, and page-level JSX composition are preserved. API,
-React Query, Formik, and RBAC logic belongs inside the corresponding copied
+React Query, Formik, and owner-boundary logic belongs inside the corresponding copied
 component or in its hook; it must not replace or reshape the source page tree.
 
 The following details must remain identical to the source unless a documented

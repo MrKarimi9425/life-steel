@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { apiFetch, getLanguages } from "./api";
 import type { BlogMedia, BlogNode } from "./blog";
 import { siteCopy } from "./site-content-copy";
+import { pageSeo } from "./page-seo";
 export { siteCopy, contactHref } from "./site-content-copy";
 export type ContactInformation = {
   id: string;
@@ -22,57 +23,41 @@ export type SiteContent = {
   location: { latitude: number | null; longitude: number | null } | null;
 };
 export const getSiteContent = cache(async (locale: string) =>
-  apiFetch<SiteContent>(
-    `public/site-content/${encodeURIComponent(locale)}`,
-    true,
-  ),
+  apiFetch<SiteContent>(`public/site-content/${encodeURIComponent(locale)}`, true),
 );
 export async function sitePageMetadata(
   locale: string,
   kind: "about" | "contact",
 ): Promise<Metadata> {
-  const [content, languages] = await Promise.all([
-    getSiteContent(locale),
-    getLanguages(),
-  ]);
-  const root = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3001";
-  const url = new URL(`/${locale}/${kind}`, root).href;
+  const [content, languages] = await Promise.all([getSiteContent(locale), getLanguages()]);
+  const availableLanguages =
+    kind === "contact"
+      ? languages
+      : (
+          await Promise.all(
+            languages.map(async (language) => ({
+              language,
+              content: await getSiteContent(language.code),
+            })),
+          )
+        )
+          .filter((item) => item.content?.about)
+          .map((item) => item.language);
   const title =
     kind === "about"
-      ? content?.about?.seoTitle ||
-        content?.about?.title ||
-        siteCopy(locale).about
+      ? content?.about?.seoTitle || content?.about?.title || siteCopy(locale).about
       : siteCopy(locale).contact;
   const description =
-    kind === "about"
-      ? content?.about?.seoDescription || undefined
-      : siteCopy(locale).intro;
+    kind === "about" ? content?.about?.seoDescription || undefined : siteCopy(locale).intro;
   return {
-    title,
-    description,
-    alternates: {
-      canonical: url,
-      ...(kind === "contact"
-        ? {
-            languages: Object.fromEntries(
-              languages.map((l) => [
-                l.code,
-                new URL(`/${l.code}/${kind}`, root).href,
-              ]),
-            ),
-          }
-        : {}),
-    },
-    openGraph: {
-      type: "website",
+    ...pageSeo({
+      path: `/${locale}/${kind}`,
       title,
       description,
-      url,
-      siteName: "Life Steel",
-    },
-    twitter: { card: "summary", title, description },
-    ...(kind === "about" && !content?.about
-      ? { robots: { index: false } }
-      : {}),
+      languagePaths: Object.fromEntries(
+        availableLanguages.map((language) => [language.code, `/${language.code}/${kind}`]),
+      ),
+    }),
+    ...(kind === "about" && !content?.about ? { robots: { index: false } } : {}),
   };
 }

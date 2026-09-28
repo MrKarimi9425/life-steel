@@ -5,7 +5,6 @@ import ListPageLayout, {
 import Loading from '@/components/shared/Loading'
 import { QueryErrorState } from '@/components/shared/QueryErrorState'
 import SummaryMetricCard from '@/components/shared/SummaryMetricCard'
-import Button from '@/components/ui/Button'
 import { apiClient } from '@/lib/http/api-client'
 import type { ApiResponse } from '@/lib/http/api.types'
 
@@ -33,16 +32,6 @@ export function DashboardPage() {
         <ListPageLayout
             title="داشبورد مدیریت"
             subtitle="وضعیت محصولات و محتوای لایف استیل را یکجا ببینید."
-            actions={
-                <Button
-                    loading={summary.isFetching}
-                    onClick={() => {
-                        void summary.refetch()
-                    }}
-                >
-                    به روزرسانی
-                </Button>
-            }
         >
             <ListPageContent>
                 {summary.isPending ? (

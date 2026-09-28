@@ -30,6 +30,10 @@ are separate actions with confirmation dialogs.
 
 ## Article gallery
 
+The backend rejects About-owned images as well as images attached to another
+article, product or category; owner isolation is enforced independently of
+the gallery picker.
+
 The gallery is a separate table action. It displays only images owned by that
 article, with no shared library or video-upload action. Cropping and upload
 progress reuse the existing scoped picker. Uploads are attached immediately;
@@ -45,14 +49,6 @@ reported with a warning instead of an unconditional success notification.
 The inline image dialog uses the shared `ImageSelectionGrid`: article-owned images
 are visible as selectable cards, with a selected state and an explicit insert
 button. Selecting an image does not upload files or change gallery ownership.
-
-## Verified workflow
-
-A separate disposable article was created as a draft, edited, manually published,
-reordered with the editor drag handle, and archived through the panel. Publication
-and removal after archive were verified on the public website. Permanent deletion
-was verified through the backend service and the disposable record was removed.
-The full multilingual demo article remains unchanged.
 
 ## Server state
 

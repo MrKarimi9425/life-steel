@@ -441,6 +441,19 @@ export class CatalogService {
 
   async updateProduct(id: string, input: UpdateProductDto) {
     const existing = await this.getProduct(id);
+    if (input.mediaIds !== undefined || input.coverMediaId !== undefined) {
+      const coverId =
+        input.coverMediaId !== undefined
+          ? input.coverMediaId
+          : existing.coverMediaId;
+      await this.media.assertProductMedia(
+        [
+          ...(input.mediaIds ?? existing.media.map((item) => item.mediaId)),
+          ...(coverId ? [coverId] : []),
+        ],
+        id,
+      );
+    }
     const gallery = new Map(
       existing.media
         .filter((item) => item.media.kind === 'IMAGE' && item.media.path)
@@ -665,16 +678,21 @@ export class CatalogService {
       }
     });
 
+    let cleanupComplete = true;
     for (const mediaId of mediaIds) {
       try {
-        await this.media.remove(mediaId, { skipIfReferenced: true });
+        cleanupComplete =
+          (await this.media.remove(mediaId, { skipIfReferenced: true })) &&
+          cleanupComplete;
       } catch (error) {
+        cleanupComplete = false;
         this.logger.warn(
           `Could not remove unused media ${mediaId} after product ${id} deletion`,
           error instanceof Error ? error.stack : undefined,
         );
       }
     }
+    return { cleanupComplete };
   }
 
   async reorderProducts(ids: string[]) {
@@ -794,6 +812,7 @@ export class CatalogService {
       },
       select: {
         id: true,
+        image: { select: { kind: true, path: true } },
         translations: { where: { languageId: language.id } },
       },
       orderBy: { displayOrder: 'asc' },
@@ -1022,7 +1041,7 @@ export class CatalogService {
       ...input.mediaIds,
       ...(input.coverMediaId ? [input.coverMediaId] : []),
     ];
-    if (mediaIds.length) await this.media.assertNotBlogMedia(mediaIds);
+    if (mediaIds.length) await this.media.assertProductMedia(mediaIds);
   }
 
   private assertPrimaryCategory(

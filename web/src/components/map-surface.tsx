@@ -4,7 +4,10 @@ import type { Map as LeafletMap, MapOptions } from "leaflet";
 import { siteCopy } from "@/lib/site-content-copy";
 import watchMapTiles from "@/lib/watch-map-tiles";
 type NeshanLeaflet = typeof import("leaflet") & {
-  Map: new (element: HTMLElement, options: MapOptions & { key: string; maptype: "dreamy" }) => LeafletMap;
+  Map: new (
+    element: HTMLElement,
+    options: MapOptions & { key: string; maptype: "dreamy" },
+  ) => LeafletMap;
 };
 export function MapSurface({
   latitude,
@@ -71,9 +74,7 @@ export function MapSurface({
   return (
     <>
       <div ref={container} className="map-surface" aria-hidden="true" />
-      {unavailable && (
-        <p className="map-unavailable">{siteCopy(locale).mapUnavailable}</p>
-      )}
+      {unavailable && <p className="map-unavailable">{siteCopy(locale).mapUnavailable}</p>}
     </>
   );
 }

@@ -1,4 +1,4 @@
-import { apiFetch } from './api';
+import { apiFetch } from "./api";
 
 export type BlogMedia = {
   id: string;
@@ -24,7 +24,7 @@ export type BlogNode = {
   marks?: Array<{ type: string; attrs?: Record<string, unknown> }>;
   content?: BlogNode[];
 };
-export type BlogArticle = Omit<BlogCardData, 'cover'> & {
+export type BlogArticle = Omit<BlogCardData, "cover"> & {
   content: BlogNode;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -43,7 +43,10 @@ export async function getBlogArticles(locale: string, filters: BlogFilters = {},
   return apiFetch<BlogList>(`public/blog?${query}`, true);
 }
 export function getBlogArticle(locale: string, slug: string) {
-  return apiFetch<BlogArticle>(`public/blog/${encodeURIComponent(locale)}/${encodeURIComponent(slug)}`, true);
+  return apiFetch<BlogArticle>(
+    `public/blog/${encodeURIComponent(locale)}/${encodeURIComponent(slug)}`,
+    true,
+  );
 }
 export async function getBlogTaxonomies(locale: string) {
   const [categories, tags] = await Promise.all([
@@ -54,8 +57,61 @@ export async function getBlogTaxonomies(locale: string) {
 }
 
 const labels = {
-  fa: { blog: 'وبلاگ', introduction: 'مقاله ها و راهنماهای لایف استیل', search: 'جستجوی مقاله', categories: 'همه دسته بندی ها', tags: 'همه برچسب ها', apply: 'اعمال فیلتر', clear: 'پاک کردن فیلترها', empty: 'مقاله ای با این شرایط پیدا نشد.', read: 'خواندن مقاله', back: 'بازگشت به مقاله ها', gallery: 'گالری مقاله', related: 'مقاله های مرتبط', pages: 'صفحه بندی مقاله ها', translations: 'ترجمه های مقاله', error: 'دریافت مقاله ها با خطا مواجه شد.', retry: 'تلاش دوباره' },
-  en: { blog: 'Blog', introduction: 'Life Steel articles and guides', search: 'Search articles', categories: 'All categories', tags: 'All tags', apply: 'Apply filters', clear: 'Clear filters', empty: 'No matching articles found.', read: 'Read article', back: 'Back to articles', gallery: 'Article gallery', related: 'Related articles', pages: 'Article pages', translations: 'Article translations', error: 'Unable to load articles.', retry: 'Try again' },
-  ar: { blog: 'المدونة', introduction: 'مقالات وأدلة لايف ستيل', search: 'البحث عن مقال', categories: 'جميع الفئات', tags: 'جميع الوسوم', apply: 'تطبيق الفلاتر', clear: 'مسح الفلاتر', empty: 'لا توجد مقالات مطابقة.', read: 'قراءة المقال', back: 'العودة إلى المقالات', gallery: 'معرض صور المقال', related: 'مقالات ذات صلة', pages: 'صفحات المقالات', translations: 'ترجمات المقال', error: 'تعذر تحميل المقالات.', retry: 'إعادة المحاولة' },
+  fa: {
+    blog: "وبلاگ",
+    introduction: "مقاله ها و راهنماهای لایف استیل",
+    search: "جستجوی مقاله",
+    categories: "همه دسته بندی ها",
+    tags: "همه برچسب ها",
+    apply: "اعمال فیلتر",
+    clear: "پاک کردن فیلترها",
+    empty: "مقاله ای با این شرایط پیدا نشد.",
+    read: "خواندن مقاله",
+    back: "بازگشت به مقاله ها",
+    gallery: "گالری مقاله",
+    related: "مقاله های مرتبط",
+    pages: "صفحه بندی مقاله ها",
+    translations: "ترجمه های مقاله",
+    error: "دریافت مقاله ها با خطا مواجه شد.",
+    retry: "تلاش دوباره",
+  },
+  en: {
+    blog: "Blog",
+    introduction: "Life Steel articles and guides",
+    search: "Search articles",
+    categories: "All categories",
+    tags: "All tags",
+    apply: "Apply filters",
+    clear: "Clear filters",
+    empty: "No matching articles found.",
+    read: "Read article",
+    back: "Back to articles",
+    gallery: "Article gallery",
+    related: "Related articles",
+    pages: "Article pages",
+    translations: "Article translations",
+    error: "Unable to load articles.",
+    retry: "Try again",
+  },
+  ar: {
+    blog: "المدونة",
+    introduction: "مقالات وأدلة لايف ستيل",
+    search: "البحث عن مقال",
+    categories: "جميع الفئات",
+    tags: "جميع الوسوم",
+    apply: "تطبيق الفلاتر",
+    clear: "مسح الفلاتر",
+    empty: "لا توجد مقالات مطابقة.",
+    read: "قراءة المقال",
+    back: "العودة إلى المقالات",
+    gallery: "معرض صور المقال",
+    related: "مقالات ذات صلة",
+    pages: "صفحات المقالات",
+    translations: "ترجمات المقال",
+    error: "تعذر تحميل المقالات.",
+    retry: "إعادة المحاولة",
+  },
 };
-export function blogCopy(locale: string) { return labels[locale as keyof typeof labels] ?? labels.en; }
+export function blogCopy(locale: string) {
+  return labels[locale as keyof typeof labels] ?? labels.en;
+}

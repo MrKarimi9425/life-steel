@@ -40,11 +40,7 @@ export function ContactPageContent({
         <ContactForm locale={locale} />
       </div>
       {location?.latitude != null && location.longitude != null && (
-        <LocationMap
-          latitude={location.latitude}
-          longitude={location.longitude}
-          locale={locale}
-        />
+        <LocationMap latitude={location.latitude} longitude={location.longitude} locale={locale} />
       )}
     </main>
   );

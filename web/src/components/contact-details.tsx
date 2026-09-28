@@ -1,8 +1,4 @@
-import {
-  contactHref,
-  siteCopy,
-  type ContactInformation,
-} from "@/lib/site-content";
+import { contactHref, siteCopy, type ContactInformation } from "@/lib/site-content";
 export function ContactDetails({
   items,
   locale,
@@ -12,8 +8,7 @@ export function ContactDetails({
   locale: string;
   compact?: boolean;
 }) {
-  if (!items.length)
-    return <p className="contact-empty">{siteCopy(locale).empty}</p>;
+  if (!items.length) return <p className="contact-empty">{siteCopy(locale).empty}</p>;
   return (
     <div className={compact ? "contact-details compact" : "contact-details"}>
       {items.map((item, index) => {
@@ -25,13 +20,7 @@ export function ContactDetails({
             </span>
             <div>
               <h3>{item.title}</h3>
-              <p
-                dir={
-                  ["PHONE", "EMAIL", "LINK"].includes(item.type)
-                    ? "ltr"
-                    : undefined
-                }
-              >
+              <p dir={["PHONE", "EMAIL", "LINK"].includes(item.type) ? "ltr" : undefined}>
                 {item.value}
               </p>
             </div>
@@ -47,9 +36,7 @@ export function ContactDetails({
             className="contact-item"
             href={href}
             key={item.id}
-            {...(item.type === "LINK"
-              ? { target: "_blank", rel: "noopener noreferrer" }
-              : {})}
+            {...(item.type === "LINK" ? { target: "_blank", rel: "noopener noreferrer" } : {})}
           >
             {content}
           </a>

@@ -1,69 +1,58 @@
-# API Integration
+# API integration
 
-## Shared client
+## Transport and envelopes
 
-`src/lib/http/api-client.ts` is the only Axios instance used by features. It reads the base URL and timeout from `src/configs/app.config.ts` and sends JSON.
+`src/lib/http/api-client.ts` is the shared Axios client. Configuration comes from
+`configs/app.config.ts`; the default base URL is `/api/v1`.
+Vite proxies `/api` to the backend on port 3000 without rewriting it.
 
-Its request interceptor reads the token through the shared storage helper and
-adds `Authorization: Bearer <token>`. Authentication failures remove the token
-before publishing the global session-expired event.
+The client adds Bearer authorization and sends cookies. One shared refresh
+request handles concurrent 401 responses; each eligible request is retried only
+once. See [Authentication](AUTHENTICATION.md).
 
-## Development proxy
+Success responses use `{ message, data }`, where data may be null. Feature API
+functions explicitly unwrap data where needed. General failures use
+`{ error: { code, message } }`; field failures use `{ error: { code, fields } }`.
+The shared normalizer owns parsing. See [Error handling](ERROR_HANDLING.md).
 
-The default API base is `/api/v1`. Vite proxies `/api` to `http://127.0.0.1:3000` without rewriting the request path.
+## Feature boundaries and queries
 
-## Response contracts
+Requests and contracts belong to their feature. Existing flat files such as
+`blog.api.ts` and `site-content.api.ts` remain valid; do not move them merely to
+create a uniform directory tree. Cross-feature imports use public exports.
 
-All successful backend endpoints return:
+TanStack React Query owns server state. Keys include effective search, filters
+and pagination for server-paginated lists. Lists returned as complete collections,
+such as contact records, can search and paginate locally. Do not concatenate
+pages or substitute infinite scroll for page controls.
 
-```ts
-type ApiResponse<T> = {
-    message: string
-    data: T | null
-}
-```
+The default stale time is 30 seconds; refetch on window focus is disabled.
+Entity detail and gallery queries mount only when needed. Related language and
+taxonomy options reuse shared queries. Invalidate the changed resource rather
+than all feature lists.
 
-General backend errors use `{ error: { code, message } }`; field errors use
-`{ error: { code, fields } }`. A response never contains both error display
-channels. The Axios interceptor does not unwrap responses; feature API functions
-unwrap `data` explicitly.
+Mutation success/error toasts are centralized in the query client. Explicit
+notifications can suppress the global channel through mutation metadata.
+Blocking query states provide retry controls. Field errors belong in the form.
 
-## Feature API organization
+## Resource groups
 
-Each feature owns its request functions in `features/<feature>/api`. Query keys and request functions use backend resource names. React components do not call Axios directly.
+Paths below are relative to `/api/v1`:
 
-React Query hooks live in the feature's `hooks` directory and own query configuration, mutation success behavior, and cache invalidation.
+- `auth/password/sign-in`, `auth/me`, `auth/refresh`,
+  `auth/password/change`, `auth/logout`
+- `admins`: owner-only administrator management
+- `languages`, `languages/interface-phrases`
+- `catalog/categories`, `catalog/attributes`, `catalog/products`,
+  product detail/pricing/order operations and `catalog/product-options`
+- `blog/articles`, `blog/categories`, `blog/tags`
+- `media`: uploads, translations and deletion used by scoped galleries;
+  there is no general media-library route in the panel
+- `dashboard/summary`
+- `site-content/about`, `site-content/contacts`,
+  `site-content/location`, `site-content/messages`
 
-Server-backed resource lists use `useQuery` with explicit `pageIndex` and
-`pageSize` state. Both values are included in the query key and sent with every
-request. The UI renders the backend page directly alongside visible page
-buttons and a page-size selector; it never concatenates pages. Search and
-filter changes reset `pageIndex` to one. Resource mutations invalidate the
-resource query-key prefix.
-
-## Current integrations
-
-The admin currently calls:
-
-- `auth/request-otp`
-- `auth/verify-otp`
-- `auth/password/sign-in`
-- `auth/me`
-- `auth/password/setup`
-- `auth/password/change`
-- `admin/clients` with GET and POST
-- `rbac/roles`
-- `rbac/permissions`
-- `rbac/users`
-- `profile/me` with GET and multipart PUT
-- `service-offerings`
-- `event-types`
-
-`auth/request-otp` returns only `data: { time }`, where `time` is the remaining
-lifetime in milliseconds calculated by the backend. The frontend converts it
-to a countdown deadline when the response arrives. If a challenge is already
-active, the response contains its actual remaining time.
-
-The profile update sends all profile fields, optional avatar bytes, and the
-avatar-removal flag in one `multipart/form-data` request. The returned profile
-replaces the React Query cache entry.
+Method-specific contracts are defined by backend controllers/DTOs and Swagger
+at `/api/docs`, not by copied template examples.
+Public data groups are `public/languages`, `public/products`, `public/blog`
+and `public/site-content`. [Site content](SITE_CONTENT.md) lists its contracts.

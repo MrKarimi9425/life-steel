@@ -1,6 +1,6 @@
 # Block editor component
 
-`components/shared/BlockEditor` is a controlled, JSON-based Tiptap editor. It is independent of product HTML editing and does not fetch or save records itself.
+`components/shared/BlockEditor` is the controlled, JSON-based Tiptap editor shared by articles, products and About content. It does not fetch or save records itself. Each host owns its form, validation and scoped gallery integration.
 
 ## Host contract
 

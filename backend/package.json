@@ -13,6 +13,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main.js",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "owner:reset-password": "node --require ts-node/register scripts/reset-owner-password.ts",
     "prisma:generate": "prisma generate",
     "prisma:seed": "prisma db seed",
     "test": "jest",

@@ -10,7 +10,16 @@
 
 ورود مدیران، زبان ها، عبارت های رابط، دسته بندی ها، ویژگی ها، محصولات با قیمت رنگ ها و گالری اختصاصی، وبلاگ با ویرایشگر بلوکی، درباره ما، راه های ارتباطی، نقشه و پیام های فرم تماس پیاده سازی شده اند. پنل فارسی و راست چین است؛ جهت فیلدهای ترجمه از تنظیم زبان خوانده میشود. فروش آنلاین وجود ندارد و طراحی نهایی سایت هنوز مرحله بعدی است.
 
-بخش محتوای سایت در پنل شامل مسیرهای `/site/about`، `/site/contacts` و `/site/messages` است. درباره ما گالری اختصاصی و SEO دارد و انتشار آن دستی است. راه های ارتباطی محدودیت تعداد ندارند و از نوع تلفن، ایمیل، نشانی، ساعت کاری یا لینک هستند. موقعیت با عرض و طول جغرافیایی تنظیم میشود؛ خالی بودن هر دو مختصات نقشه را مخفی میکند.
+بخش محتوای سایت در پنل شامل مسیرهای `/site/about`، `/site/contacts` و `/site/messages` است. درباره ما گالری اختصاصی و SEO دارد و انتشار آن دستی است. راه های ارتباطی محدودیت تعداد ندارند و از نوع تلفن، ایمیل، نشانی، ساعت کاری یا لینک هستند. موقعیت با انتخاب روی نقشه تنظیم میشود؛ خالی بودن هر دو مختصات نقشه را مخفی میکند.
+
+## مستندات
+
+- [برنامه ادامه توسعه و وضعیت انجام مراحل](docs/development-roadmap.md)
+- [راهنمای عمومی صفحات، جدول ها و فرم های پنل](docs/admin-panel-development-guide.md)
+- [پنل مدیریت](admin/README.md)
+- [بک اند](backend/README.md)
+- [وب](web/README.md)
+- [محتوای سایت و نقشه](admin/docs/SITE_CONTENT.md)
 
 The localized `/{locale}/about` and `/{locale}/contact` pages use Neshan's Leaflet SDK. Configure `VITE_NESHAN_WEB_API_KEY` in `admin/.env.local` and `NEXT_PUBLIC_NESHAN_WEB_API_KEY` in `web/.env.local`; these files are ignored by Git. Example environment files contain no real keys. Web map keys are necessarily visible in client bundles: restrict permitted domains in Neshan's panel and maintain sufficient account credit. About content is edited directly on its admin page; its gallery has an independent dialog. Admin location selection uses map clicks rather than coordinate inputs. Desktop map links open Balad; Android uses `geo:` and iOS uses Apple Maps, with actual app handling determined by the device. Map attribution must remain visible. Define public contact-form rate limits before deployment.
 

@@ -180,8 +180,13 @@ export class CatalogController {
 
   @Delete('products/:id')
   async deleteProduct(@Param('id') id: string) {
-    await this.catalog.deleteProduct(id);
-    return createSuccessResponse('محصول برای همیشه حذف شد.', null);
+    const result = await this.catalog.deleteProduct(id);
+    return createSuccessResponse(
+      result.cleanupComplete
+        ? 'محصول و تصاویر آن برای همیشه حذف شدند.'
+        : 'محصول حذف شد، اما پاکسازی برخی فایل ها کامل نشد.',
+      result,
+    );
   }
 
   @Delete('products/:id/media/:mediaId')

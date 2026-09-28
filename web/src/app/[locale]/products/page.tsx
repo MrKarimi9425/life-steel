@@ -1,19 +1,45 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
-import { getProductFilters, getProducts } from "@/lib/api";
+import { getLanguages, getProductFilters, getProducts } from "@/lib/api";
+import { listingQuery, pageSeo } from "@/lib/page-seo";
 
 export const dynamic = "force-dynamic";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 const supportedFilters = [
-  "search", "categoryId", "attributeId", "optionId", "minNumber", "maxNumber",
-  "booleanValue", "sort", "page",
+  "search",
+  "categoryId",
+  "attributeId",
+  "optionId",
+  "minNumber",
+  "maxNumber",
+  "booleanValue",
+  "sort",
+  "page",
 ];
 
-export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<SearchParams>;
+}): Promise<Metadata> {
   const { locale } = await params;
-  return { title: locale === "fa" ? "محصولات" : "Products" };
+  const languages = await getLanguages();
+  const query = listingQuery(await searchParams, supportedFilters);
+  return pageSeo({
+    path: `/${locale}/products${query}`,
+    title: locale === "fa" ? "محصولات" : "Products",
+    description:
+      locale === "fa"
+        ? "مجموعه حوله خشک کن ها و رادیاتورهای استیل لایف استیل"
+        : "Life Steel towel warmers and stainless steel radiators",
+    languagePaths: Object.fromEntries(
+      languages.map((language) => [language.code, `/${language.code}/products${query}`]),
+    ),
+  });
 }
 
 export default async function ProductsPage({
@@ -48,34 +74,59 @@ export default async function ProductsPage({
       <div className="listing-hero">
         <span className="eyebrow">LIFE STEEL COLLECTION</span>
         <h1>{isFa ? "محصولات استیل" : "Stainless steel products"}</h1>
-        <p>{isFa ? "مجموعه حوله خشک کن ها و رادیاتورهای استیل لایف استیل" : "Life Steel towel warmers and stainless steel radiators"}</p>
+        <p>
+          {isFa
+            ? "مجموعه حوله خشک کن ها و رادیاتورهای استیل لایف استیل"
+            : "Life Steel towel warmers and stainless steel radiators"}
+        </p>
       </div>
       <form className="catalog-filters" action={`/${locale}/products`} method="get">
-        <input name="search" defaultValue={filters.search ?? ""} placeholder={isFa ? "جستجوی محصول" : "Search products"} />
+        <input
+          name="search"
+          defaultValue={filters.search ?? ""}
+          placeholder={isFa ? "جستجوی محصول" : "Search products"}
+        />
         <select name="categoryId" defaultValue={filters.categoryId ?? ""}>
           <option value="">{isFa ? "همه دسته بندی ها" : "All categories"}</option>
           {options.categories.map((category) => (
-            <option key={category.id} value={category.id}>{category.translations[0]?.title}</option>
+            <option key={category.id} value={category.id}>
+              {category.translations[0]?.title}
+            </option>
           ))}
         </select>
         <select name="attributeId" defaultValue={filters.attributeId ?? ""}>
           <option value="">{isFa ? "همه ویژگی ها" : "All attributes"}</option>
           {options.attributes.map((attribute) => (
-            <option key={attribute.id} value={attribute.id}>{attribute.translations[0]?.name}</option>
+            <option key={attribute.id} value={attribute.id}>
+              {attribute.translations[0]?.name}
+            </option>
           ))}
         </select>
-        {selectedAttribute && ["SINGLE_SELECT", "MULTI_SELECT", "COLOR"].includes(selectedAttribute.type) && (
-          <select name="optionId" defaultValue={filters.optionId ?? ""}>
-            <option value="">{isFa ? "همه گزینه ها" : "All options"}</option>
-            {selectedAttribute.options.map((option) => (
-              <option key={option.id} value={option.id}>{option.translations[0]?.label}</option>
-            ))}
-          </select>
-        )}
+        {selectedAttribute &&
+          ["SINGLE_SELECT", "MULTI_SELECT", "COLOR"].includes(selectedAttribute.type) && (
+            <select name="optionId" defaultValue={filters.optionId ?? ""}>
+              <option value="">{isFa ? "همه گزینه ها" : "All options"}</option>
+              {selectedAttribute.options.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.translations[0]?.label}
+                </option>
+              ))}
+            </select>
+          )}
         {selectedAttribute?.type === "NUMBER" && (
           <>
-            <input name="minNumber" type="number" defaultValue={filters.minNumber ?? ""} placeholder={isFa ? "حداقل" : "Min"} />
-            <input name="maxNumber" type="number" defaultValue={filters.maxNumber ?? ""} placeholder={isFa ? "حداکثر" : "Max"} />
+            <input
+              name="minNumber"
+              type="number"
+              defaultValue={filters.minNumber ?? ""}
+              placeholder={isFa ? "حداقل" : "Min"}
+            />
+            <input
+              name="maxNumber"
+              type="number"
+              defaultValue={filters.maxNumber ?? ""}
+              placeholder={isFa ? "حداکثر" : "Max"}
+            />
           </>
         )}
         {selectedAttribute?.type === "BOOLEAN" && (
@@ -94,15 +145,21 @@ export default async function ProductsPage({
       </form>
       {result.items.length > 0 ? (
         <div className="product-grid">
-          {result.items.map((product) => <ProductCard key={product.id} product={product} locale={locale} />)}
+          {result.items.map((product) => (
+            <ProductCard key={product.id} product={product} locale={locale} />
+          ))}
         </div>
       ) : (
-        <div className="empty-state">{isFa ? "محصولی با این شرایط پیدا نشد." : "No matching products found."}</div>
+        <div className="empty-state">
+          {isFa ? "محصولی با این شرایط پیدا نشد." : "No matching products found."}
+        </div>
       )}
       {pageCount > 1 && (
         <nav className="pagination" aria-label={isFa ? "صفحه بندی محصولات" : "Product pages"}>
           {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
-            <Link key={page} href={pageHref(page)} className={page === result.page ? "active" : ""}>{page}</Link>
+            <Link key={page} href={pageHref(page)} className={page === result.page ? "active" : ""}>
+              {page}
+            </Link>
           ))}
         </nav>
       )}
