@@ -2,17 +2,7 @@ import { getLanguages, getProductFilters, getProducts } from "@/lib/api";
 import { getBlogArticles } from "@/lib/blog";
 import { getSiteContent } from "@/lib/site-content";
 import { pageSeo } from "@/lib/page-seo";
-import {
-  HomeHero,
-  HomeCategories,
-  HomeBenefits,
-  HomeProducts,
-  HomeFeatured,
-  HomeStories,
-  HomeJournal,
-  HomeContact,
-} from "@/components/home-sections";
-import "@/app/home.css";
+import { HomeLayout } from "@/features/home-layout/components/home-layout";
 
 export const dynamic = "force-dynamic";
 
@@ -35,37 +25,21 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   const [productList, filters, articleList, content] = await Promise.all([
-    getProducts(locale, { pageSize: "6" }),
+    getProducts(locale, { pageSize: "8" }),
     getProductFilters(locale),
-    getBlogArticles(locale, {}, 4).catch(() => null),
+    getBlogArticles(locale, {}, 5).catch(() => null),
     getSiteContent(locale).catch(() => null),
   ]);
   return (
-    <main className="home-page">
-      <HomeCategories
+    <main className="bg-surface pt-5 pb-[35px] text-content-strong max-[680px]:pt-0">
+      <HomeLayout
         locale={locale}
+        sections={content?.homePage.sections ?? null}
         categories={filters.categories}
         products={productList.items}
+        selectedProductsLimit={content?.homePage.selectedProductsLimit ?? 6}
+        articles={articleList?.items ?? []}
       />
-      <HomeHero
-        locale={locale}
-        featured={productList.items.find((product) => product.isFeatured) ?? null}
-      />
-      <HomeProducts locale={locale} products={productList.items} />
-      <HomeFeatured
-        locale={locale}
-        product={
-          productList.items.find((product) => product.isFeatured) ?? productList.items[0] ?? null
-        }
-      />
-      <HomeStories
-        locale={locale}
-        aboutTitle={content?.about?.title ?? null}
-        products={productList.items}
-      />
-      <HomeBenefits locale={locale} />
-      <HomeJournal locale={locale} articles={articleList?.items ?? []} />
-      <HomeContact locale={locale} />
     </main>
   );
 }

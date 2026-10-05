@@ -11,7 +11,41 @@ export type ContactInformation = {
   title: string;
   value: string;
 };
+export type SiteBanner = {
+  id: string;
+  altText: string;
+  targetUrl: string;
+  desktopImage: { path: string; width: number | null; height: number | null };
+  tabletImage: { path: string; width: number | null; height: number | null };
+  mobileImage: { path: string; width: number | null; height: number | null };
+};
+export type HomeSectionType =
+  | "HERO"
+  | "CATEGORIES"
+  | "FEATURED_PRODUCT"
+  | "SELECTED_PRODUCTS"
+  | "BENEFITS"
+  | "BLOG"
+  | "CONTACT"
+  | "BANNER_FULL"
+  | "BANNER_SPLIT";
+export type HomeSection = {
+  id: string;
+  type: HomeSectionType;
+  displayOrder: number;
+  banners: SiteBanner[];
+};
 export type SiteContent = {
+  homePage: {
+    selectedProductsLimit: number;
+    sections: HomeSection[];
+  };
+  products: {
+    banner: SiteBanner | null;
+  };
+  blog: {
+    banner: SiteBanner | null;
+  };
   about: {
     title: string;
     content: BlogNode;
