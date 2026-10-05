@@ -72,6 +72,13 @@ export function listingQuery(
   const query = new URLSearchParams();
   for (const key of keys) {
     const value = incoming[key];
+    if (Array.isArray(value)) {
+      value
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .forEach((item) => query.append(key, item));
+      continue;
+    }
     if (typeof value !== "string" || !value.trim()) continue;
     if (key === "page") {
       const page = Number(value);

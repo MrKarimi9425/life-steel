@@ -30,6 +30,7 @@ export type ProductCardData = {
   translations: Array<{ title: string; slug: string; summary: string | null }>;
   coverMedia: Media | null;
   categories: Array<{
+    categoryId: string;
     isPrimary: boolean;
     category: { translations: Array<{ title: string; slug: string }> };
   }>;
@@ -49,7 +50,7 @@ export type ProductDetailData = Omit<ProductCardData, "translations"> & {
   }>;
   media: Array<{ media: Media }>;
   attributeValues: Array<{
-    numberValue: string | null;
+    numberValue: string | number | { s: 1 | -1; e: number; d: number[] } | null;
     booleanValue: boolean | null;
     rawValue: unknown;
     translations: Array<{ textValue: string }>;
@@ -112,15 +113,23 @@ export type ProductFilters = {
     id: string;
     type: string;
     translations: Array<{ name: string; unitLabel: string | null }>;
-    options: Array<{ id: string; translations: Array<{ label: string }> }>;
+    options: Array<{
+      id: string;
+      colorHex: string | null;
+      translations: Array<{ label: string }>;
+    }>;
   }>;
 };
 
 export async function getProducts(
   locale: string,
-  filters: Record<string, string> = {},
+  filters: Record<string, string | string[]> = {},
 ): Promise<ProductList> {
-  const params = new URLSearchParams({ language: locale, pageSize: "12", ...filters });
+  const params = new URLSearchParams({ language: locale, pageSize: "12" });
+  for (const [key, value] of Object.entries(filters)) {
+    if (Array.isArray(value)) value.forEach((item) => params.append(key, item));
+    else params.set(key, value);
+  }
   return (
     (await apiFetch<ProductList>(`public/products?${params.toString()}`)) ?? {
       items: [],
