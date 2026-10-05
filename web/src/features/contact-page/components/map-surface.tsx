@@ -1,14 +1,17 @@
 "use client";
+
 import { useEffect, useRef, useState } from "react";
 import type { Map as LeafletMap, MapOptions } from "leaflet";
 import { siteCopy } from "@/lib/site-content-copy";
 import watchMapTiles from "@/lib/watch-map-tiles";
+
 type NeshanLeaflet = typeof import("leaflet") & {
   Map: new (
     element: HTMLElement,
     options: MapOptions & { key: string; maptype: "dreamy" },
   ) => LeafletMap;
 };
+
 export function MapSurface({
   latitude,
   longitude,
@@ -20,6 +23,7 @@ export function MapSurface({
 }) {
   const container = useRef<HTMLDivElement>(null);
   const [unavailable, setUnavailable] = useState(false);
+
   useEffect(() => {
     let active = true;
     let map: LeafletMap | undefined;
@@ -46,8 +50,8 @@ export function MapSurface({
           touchZoom: false,
         });
         map.attributionControl.setPrefix(false);
-        stopWatchingTiles = watchMapTiles(map, (unavailable) => {
-          if (active) setUnavailable(unavailable);
+        stopWatchingTiles = watchMapTiles(map, (tilesUnavailable) => {
+          if (active) setUnavailable(tilesUnavailable);
         });
         L.marker([latitude, longitude], {
           interactive: false,
@@ -71,10 +75,19 @@ export function MapSurface({
       map?.remove();
     };
   }, [latitude, longitude]);
+
   return (
     <>
-      <div ref={container} className="map-surface" aria-hidden="true" />
-      {unavailable && <p className="map-unavailable">{siteCopy(locale).mapUnavailable}</p>}
+      <div
+        ref={container}
+        className="pointer-events-none absolute inset-0 z-0"
+        aria-hidden="true"
+      />
+      {unavailable && (
+        <p className="absolute top-3.5 inset-x-5 z-[1] m-0 rounded-xl bg-white/95 px-3.5 py-2.5 text-xs leading-7 text-content-strong">
+          {siteCopy(locale).mapUnavailable}
+        </p>
+      )}
     </>
   );
 }
