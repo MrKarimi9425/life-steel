@@ -1,4 +1,4 @@
-import { AboutPageContent } from "@/components/about-page";
+import { AboutPageContent } from "@/features/about-page/components/about-page-content";
 import { getSiteContent, sitePageMetadata } from "@/lib/site-content";
 type Props = { params: Promise<{ locale: string }> };
 export async function generateMetadata({ params }: Props) {
