@@ -47,7 +47,7 @@ export function SiteHeaderShell({ children }: { children: ReactNode }) {
   return (
     <div className="site-header-space h-[172px] max-[1025px]:h-[88px] max-[1025px]:transition-[height] max-[1025px]:duration-[280ms] motion-reduce:transition-none">
       <header
-        className="site-header fixed inset-x-0 top-0 z-20 w-full bg-white font-[PeydaHeader,Tahoma,Arial,sans-serif] shadow-[0_8px_24px_rgba(32,45,62,.035)]"
+        className="site-header fixed inset-x-0 top-0 z-20 w-full border-b border-line-soft bg-surface font-[PeydaHeader,Tahoma,Arial,sans-serif]"
         data-compact={compact || undefined}
       >
         {children}

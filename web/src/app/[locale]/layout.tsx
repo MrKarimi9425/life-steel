@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
 import { getLanguages, getPhrases, getProductCategories } from "@/lib/api";
 import { getSiteContent } from "@/lib/site-content";
-import { ContactDetails } from "@/components/contact-details";
+import { SiteFooter } from "@/features/site-footer/components/site-footer";
 import { SiteHeader } from "@/features/site-header/components/site-header";
+import { SiteScrollbar } from "@/features/site-scrollbar/components/site-scrollbar";
 
 export const dynamic = "force-dynamic";
 
@@ -19,8 +20,6 @@ export default async function LocaleLayout({
     getProductCategories(locale),
     getSiteContent(locale),
   ]);
-  const isFa = locale === "fa";
-
   return (
     <html
       lang={locale}
@@ -35,18 +34,9 @@ export default async function LocaleLayout({
           contacts={content?.contacts ?? []}
           phrases={phrases}
         />
+        <SiteScrollbar />
         {children}
-        <footer id="contact" className="site-footer">
-          <div>
-            <strong>Life Steel</strong>
-            <p>
-              {isFa ? "تخصص در ساخت محصولات گرمایشی استیل" : "Stainless steel heating products"}
-            </p>
-          </div>
-          <div>
-            <ContactDetails items={content?.contacts ?? []} locale={locale} compact />
-          </div>
-        </footer>
+        <SiteFooter locale={locale} categories={categories} contacts={content?.contacts ?? []} />
       </body>
     </html>
   );

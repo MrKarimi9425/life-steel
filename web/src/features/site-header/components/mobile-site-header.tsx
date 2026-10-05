@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { FiChevronDown, FiGrid, FiMenu, FiPhoneCall, FiSearch, FiX } from "react-icons/fi";
+import { SiteContainer } from "@/components/site-container";
 import type { Language, ProductFilters } from "@/lib/api";
 import { SiteNavigation, type SiteNavigationItem } from "./site-navigation";
 
@@ -34,21 +35,21 @@ function SearchForm({
 }: Pick<MobileSiteHeaderProps, "locale" | "labels"> & { onSubmit?: () => void }) {
   return (
     <form
-      className="flex h-[52px] flex-row-reverse items-center rounded-[15px] border border-[#ebedf1] bg-white"
+      className="flex h-[52px] flex-row-reverse items-center rounded-[15px] border border-line bg-surface"
       action={`/${locale}/products`}
       method="get"
       role="search"
       onSubmit={onSubmit}
     >
       <input
-        className="h-full min-w-0 flex-1 border-0 bg-transparent px-4 font-[PeydaHeader,Tahoma,Arial,sans-serif] text-sm font-normal text-[#29313b] outline-none placeholder:text-[#a8b2c0]"
+        className="h-full min-w-0 flex-1 border-0 bg-transparent px-4 font-[PeydaHeader,Tahoma,Arial,sans-serif] text-sm font-normal text-content-strong outline-none placeholder:text-content-subtle"
         name="search"
         type="search"
         aria-label={labels.search}
         placeholder={labels.searchPlaceholder}
       />
       <button
-        className="grid h-12 w-12 shrink-0 cursor-pointer place-items-center text-[#9facbe]"
+        className="grid h-12 w-12 shrink-0 cursor-pointer place-items-center text-content-subtle"
         type="submit"
         aria-label={labels.search}
       >
@@ -85,6 +86,7 @@ export function MobileSiteHeader({
   useEffect(() => {
     if (!drawerOpen) return;
     const previousOverflow = document.body.style.overflow;
+    const menuTrigger = menuTriggerRef.current;
     document.body.style.overflow = "hidden";
     drawerRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
@@ -94,7 +96,7 @@ export function MobileSiteHeader({
     return () => {
       document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
-      menuTriggerRef.current?.focus();
+      menuTrigger?.focus();
     };
   }, [drawerOpen]);
 
@@ -102,7 +104,7 @@ export function MobileSiteHeader({
 
   return (
     <>
-      <div className="hidden h-[88px] items-center justify-between gap-2 border-b border-[#f1f2f4] px-[14px] max-[1025px]:flex">
+      <SiteContainer className="hidden h-[88px] items-center justify-between gap-2 border-b border-line-soft max-[1025px]:flex">
         <Link
           className="flex min-w-0 items-center gap-[7px]"
           href={`/${locale}`}
@@ -117,10 +119,11 @@ export function MobileSiteHeader({
             priority
           />
           <span className="block min-w-0 max-[370px]:hidden">
-            <strong className="block whitespace-nowrap font-[Arial,sans-serif] text-base font-black tracking-[.5px] text-[#252d35]">
-              LIFE STEEL
+            <strong className="block whitespace-nowrap font-[Arial,sans-serif] text-base font-black tracking-[.5px]">
+              <span className="text-brand">LIFE</span>{" "}
+              <span className="text-content-strong">STEEL</span>
             </strong>
-            <small className="mt-[3px] block whitespace-nowrap text-[8px] text-[#8a95a4]">
+            <small className="mt-[3px] block whitespace-nowrap text-[8px] text-content-subtle">
               {brandSubtitle}
             </small>
           </span>
@@ -128,7 +131,7 @@ export function MobileSiteHeader({
         <div className="flex shrink-0 items-center gap-[6px]" dir="ltr">
           <button
             ref={menuTriggerRef}
-            className={`${mobileActionClass} bg-[#f77910] text-white`}
+            className={`${mobileActionClass} bg-brand text-content-inverse`}
             type="button"
             aria-label={labels.menu}
             aria-expanded={drawerOpen}
@@ -141,14 +144,14 @@ export function MobileSiteHeader({
             <FiMenu className="h-[22px] w-[22px]" aria-hidden="true" />
           </button>
           <Link
-            className={`${mobileActionClass} bg-[#fff0e2] text-[#e57617]`}
+            className={`${mobileActionClass} bg-surface-soft text-brand`}
             href={contactHref}
             aria-label={labels.contact}
           >
             <FiPhoneCall className="h-[22px] w-[22px]" aria-hidden="true" />
           </Link>
           <button
-            className={`${mobileActionClass} bg-[#f6f8fa] text-[#8290a1]`}
+            className={`${mobileActionClass} bg-surface-muted text-content-subtle`}
             type="button"
             aria-label={labels.search}
             aria-expanded={searchOpen}
@@ -158,15 +161,17 @@ export function MobileSiteHeader({
             <FiSearch className="h-[22px] w-[22px]" aria-hidden="true" />
           </button>
         </div>
-      </div>
+      </SiteContainer>
       <div
         id="mobile-header-search-panel"
-        className="mobile-header-search-panel hidden max-h-0 -translate-y-2 overflow-hidden border-b-0 border-transparent bg-white px-[14px] opacity-0 transition-[max-height,padding,border-color,opacity,transform] duration-[280ms] data-[open=true]:max-h-[69px] data-[open=true]:translate-y-0 data-[open=true]:border-b data-[open=true]:border-[#eff1f4] data-[open=true]:py-2 data-[open=true]:opacity-100 max-[1025px]:block motion-reduce:transition-none"
+        className="mobile-header-search-panel hidden max-h-0 -translate-y-2 overflow-hidden border-b-0 border-transparent bg-surface opacity-0 transition-[max-height,padding,border-color,opacity,transform] duration-[280ms] data-[open=true]:max-h-[69px] data-[open=true]:translate-y-0 data-[open=true]:border-b data-[open=true]:border-line-soft data-[open=true]:py-2 data-[open=true]:opacity-100 max-[1025px]:block motion-reduce:transition-none"
         data-open={searchOpen}
         aria-hidden={!searchOpen}
         inert={!searchOpen}
       >
-        <SearchForm locale={locale} labels={labels} />
+        <SiteContainer>
+          <SearchForm locale={locale} labels={labels} />
+        </SiteContainer>
       </div>
       {mounted &&
         createPortal(
@@ -175,7 +180,7 @@ export function MobileSiteHeader({
             data-open={drawerOpen}
           >
             <button
-              className="absolute inset-0 w-full bg-[rgba(20,26,34,.48)] opacity-0 transition-opacity duration-[280ms] group-data-[open=true]:opacity-100 motion-reduce:transition-none"
+              className="absolute inset-0 w-full bg-surface-dark/50 opacity-0 transition-opacity duration-[280ms] group-data-[open=true]:opacity-100 motion-reduce:transition-none"
               type="button"
               aria-label={labels.close}
               tabIndex={drawerOpen ? 0 : -1}
@@ -184,7 +189,7 @@ export function MobileSiteHeader({
             <aside
               ref={drawerRef}
               id="mobile-site-drawer"
-              className="absolute inset-y-0 start-0 w-[min(360px,calc(100vw-16px))] translate-x-[105%] overflow-hidden bg-white shadow-[0_20px_55px_rgba(20,26,34,.14)] outline-none transition-transform duration-[280ms] group-data-[open=true]:translate-x-0 ltr:-translate-x-[105%] ltr:group-data-[open=true]:translate-x-0 motion-reduce:transition-none"
+              className="absolute inset-y-0 start-0 w-[min(360px,calc(100vw-16px))] translate-x-[105%] overflow-hidden bg-surface shadow-panel outline-none transition-transform duration-[280ms] group-data-[open=true]:translate-x-0 ltr:-translate-x-[105%] ltr:group-data-[open=true]:translate-x-0 motion-reduce:transition-none"
               role="dialog"
               aria-modal="true"
               aria-label={labels.menu}
@@ -192,10 +197,10 @@ export function MobileSiteHeader({
               inert={!drawerOpen}
               tabIndex={-1}
             >
-              <div className="flex h-[70px] items-center justify-between border-b border-[#eff1f4] ps-[18px] pe-[14px] text-lg font-black text-[#252b33]">
+              <div className="flex h-[70px] items-center justify-between border-b border-line-soft ps-[18px] pe-[14px] text-lg font-black text-content-strong">
                 <strong>{labels.menu}</strong>
                 <button
-                  className="grid h-10 w-10 place-items-center rounded-[13px] bg-[#f6f8fa] text-[#8b97a5]"
+                  className="grid h-10 w-10 place-items-center rounded-[13px] bg-surface-muted text-content-subtle"
                   type="button"
                   aria-label={labels.close}
                   onClick={closeDrawer}
@@ -207,7 +212,7 @@ export function MobileSiteHeader({
                 <SearchForm locale={locale} labels={labels} onSubmit={closeDrawer} />
                 <div className="flex flex-col">
                   <button
-                    className="group flex min-h-[52px] w-full cursor-pointer items-center gap-[10px] rounded-[15px] border border-[#eef0f4] bg-white px-[15px] font-[PeydaHeader,Tahoma,Arial,sans-serif] text-[15px] font-extrabold text-[#303846] shadow-[0_3px_10px_rgba(23,37,57,.025)] aria-[expanded=true]:border-[#ffead7] aria-[expanded=true]:bg-[#fff4eb]"
+                    className="group flex min-h-[52px] w-full cursor-pointer items-center gap-[10px] rounded-[15px] border border-line-soft bg-surface px-[15px] font-[PeydaHeader,Tahoma,Arial,sans-serif] text-[15px] font-extrabold text-content-strong aria-[expanded=true]:border-brand aria-[expanded=true]:bg-surface-soft"
                     type="button"
                     aria-expanded={categoriesOpen}
                     aria-controls="mobile-site-drawer-categories"
@@ -215,11 +220,11 @@ export function MobileSiteHeader({
                   >
                     <span>{labels.categories}</span>
                     <FiGrid
-                      className="order-first h-[22px] w-[22px] text-[#ef7b18]"
+                      className="order-first h-[22px] w-[22px] text-brand"
                       aria-hidden="true"
                     />
                     <FiChevronDown
-                      className="ms-auto h-[22px] w-[22px] text-[#ef7b18] transition-transform duration-200 group-aria-expanded:rotate-180 motion-reduce:transition-none"
+                      className="ms-auto h-[22px] w-[22px] text-brand transition-transform duration-200 group-aria-expanded:rotate-180 motion-reduce:transition-none"
                       aria-hidden="true"
                     />
                   </button>
@@ -234,12 +239,12 @@ export function MobileSiteHeader({
                       aria-hidden={!categoriesOpen}
                       inert={!categoriesOpen}
                     >
-                      <div className="grid gap-2 rounded-[15px] border border-[#f2eee9] p-[9px]">
+                      <div className="grid gap-2 rounded-[15px] border border-line p-[9px]">
                         {categories.map(
                           (category) =>
                             category.translations[0]?.title && (
                               <Link
-                                className="flex min-h-[43px] items-center rounded-xl border border-[#f0f1f4] px-3 text-sm font-bold text-[#505b69] hover:border-[#f8ba85]"
+                                className="flex min-h-[43px] items-center rounded-xl border border-line px-3 text-sm font-bold text-content hover:border-brand-border"
                                 key={category.id}
                                 href={`/${locale}/products?categoryId=${encodeURIComponent(category.id)}`}
                                 onClick={closeDrawer}
@@ -249,7 +254,7 @@ export function MobileSiteHeader({
                             ),
                         )}
                         <Link
-                          className="flex min-h-[43px] items-center rounded-xl border border-[#f0f1f4] px-3 text-sm font-bold text-[#505b69] hover:border-[#f8ba85]"
+                          className="flex min-h-[43px] items-center rounded-xl border border-line px-3 text-sm font-bold text-content hover:border-brand-border"
                           href={`/${locale}/products`}
                           onClick={closeDrawer}
                         >
@@ -266,12 +271,12 @@ export function MobileSiteHeader({
                   onNavigate={closeDrawer}
                 />
                 <div
-                  className="flex min-h-[52px] flex-wrap items-center gap-2 rounded-[15px] border border-[#eef0f4] p-2 shadow-[0_3px_10px_rgba(23,37,57,.025)]"
+                  className="flex min-h-[52px] flex-wrap items-center gap-2 rounded-[15px] border border-line-soft p-2"
                   aria-label={labels.languages}
                 >
                   {languages.map((item) => (
                     <Link
-                      className="rounded-[9px] px-[10px] py-[5px] text-[13px] text-[#6b7481] aria-[current=page]:bg-[#fff0e2] aria-[current=page]:text-[#c7640b]"
+                      className="rounded-[9px] px-[10px] py-[5px] text-[13px] text-content-muted aria-[current=page]:bg-surface-dark aria-[current=page]:text-content-inverse"
                       key={item.code}
                       href={`/${item.code}`}
                       aria-current={item.code === locale ? "page" : undefined}

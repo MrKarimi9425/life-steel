@@ -14,11 +14,13 @@
   "dependencies": {
     "@neshan-maps-platform/leaflet": "^1.0.8",
     "leaflet": "^1.9.4",
+    "motion": "^14.0.0",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-icons": "^5.7.0",
-    "sanitize-html": "^2.17.7"
+    "sanitize-html": "^2.17.7",
+    "swiper": "^14.3.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

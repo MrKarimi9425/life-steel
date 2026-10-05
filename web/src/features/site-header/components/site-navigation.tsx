@@ -37,8 +37,8 @@ export function SiteNavigation({ items, label, variant, onNavigate }: SiteNaviga
       {items.map((item, index) => {
         const current = navigationState(pathname, item.href, index === 0);
         const className = desktop
-          ? `relative inline-flex items-center text-[15px] font-extrabold transition-colors hover:text-[#e57617] hover:after:absolute hover:after:inset-x-0 hover:after:bottom-[6px] hover:after:h-0.5 hover:after:bg-[#f77910] hover:after:content-[''] ${current ? "text-[#e57617] after:absolute after:inset-x-0 after:bottom-[6px] after:h-0.5 after:bg-[#f77910] after:content-['']" : "text-[#6b7280]"}`
-          : `flex min-h-[52px] items-center rounded-[15px] border px-[15px] text-[15px] font-extrabold shadow-[0_3px_10px_rgba(23,37,57,.025)] hover:border-[#f8ba85] hover:text-[#df7012] ${current ? "border-[#ffead7] bg-[#fff4eb] text-[#df7012]" : "border-[#eef0f4] text-[#303846]"}`;
+          ? `relative inline-flex items-center text-[15px] font-extrabold transition-colors hover:text-brand hover:after:absolute hover:after:inset-x-0 hover:after:bottom-[6px] hover:after:h-0.5 hover:after:bg-brand hover:after:content-[''] ${current ? "text-brand after:absolute after:inset-x-0 after:bottom-[6px] after:h-0.5 after:bg-brand after:content-['']" : "text-content-muted"}`
+          : `flex min-h-[52px] items-center rounded-[15px] border px-[15px] text-[15px] font-extrabold hover:border-brand hover:text-brand-strong ${current ? "border-line bg-surface-soft text-brand-strong" : "border-line-soft text-content-strong"}`;
 
         return (
           <Link

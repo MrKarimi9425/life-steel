@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { FiChevronDown, FiGrid, FiMenu, FiX } from "react-icons/fi";
+import { FiArrowLeft, FiArrowRight, FiChevronDown, FiMenu, FiX } from "react-icons/fi";
 import { mediaUrl, type ProductFilters } from "@/lib/api";
 
 type CategoryDropdownProps = {
@@ -15,9 +15,12 @@ type CategoryDropdownProps = {
 
 export function CategoryDropdown({ locale, label, categories }: CategoryDropdownProps) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openFrame = useRef<number | null>(null);
+  const suppressHoverUntil = useRef(0);
   const allProductsLabel =
     locale === "fa" ? "همه محصولات" : locale === "ar" ? "كل المنتجات" : "All products";
   const emptyLabel =
@@ -26,28 +29,47 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
       : locale === "ar"
         ? "لا توجد فئات بعد."
         : "No categories yet.";
+  const viewProductsLabel =
+    locale === "fa" ? "مشاهده محصولات" : locale === "ar" ? "عرض المنتجات" : "View products";
+  const DirectionArrow = locale === "en" ? FiArrowRight : FiArrowLeft;
 
   const cancelClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
     closeTimer.current = null;
   };
+  const openDropdown = () => {
+    if (Date.now() < suppressHoverUntil.current) return;
+    cancelClose();
+    if (openFrame.current) cancelAnimationFrame(openFrame.current);
+    setMounted(true);
+    openFrame.current = requestAnimationFrame(() => {
+      setOpen(true);
+      openFrame.current = null;
+    });
+  };
+  const closeDropdown = () => {
+    cancelClose();
+    suppressHoverUntil.current = Date.now() + 260;
+    if (openFrame.current) cancelAnimationFrame(openFrame.current);
+    openFrame.current = null;
+    setOpen(false);
+  };
   const scheduleClose = () => {
     cancelClose();
-    closeTimer.current = setTimeout(() => setOpen(false), 180);
+    closeTimer.current = setTimeout(closeDropdown, 180);
   };
 
   useEffect(
     () => () => {
       if (closeTimer.current) clearTimeout(closeTimer.current);
+      if (openFrame.current) cancelAnimationFrame(openFrame.current);
     },
     [],
   );
 
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
     const trigger = triggerRef.current;
-    document.body.style.overflow = "hidden";
     dialogRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
@@ -56,7 +78,6 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
     document.addEventListener("keydown", onKeyDown);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      document.body.style.overflow = previousOverflow;
       document.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("scroll", onScroll);
       trigger?.focus();
@@ -67,14 +88,13 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
     <>
       <button
         ref={triggerRef}
-        className="group flex h-[52px] items-center gap-[5px] whitespace-nowrap rounded-2xl border border-[#e3e9f1] bg-white px-[10px] font-[PeydaHeader,Tahoma,Arial,sans-serif] text-base font-black text-[#e57617] shadow-[0_4px_13px_rgba(31,50,77,.045)] transition-[border-color,box-shadow,color] duration-200 hover:border-[#f7bc88] hover:shadow-[0_8px_22px_rgba(247,121,16,.11)] aria-[expanded=true]:border-[#f7bc88] aria-[expanded=true]:shadow-[0_8px_22px_rgba(247,121,16,.11)] motion-reduce:transition-none"
+        className="group flex h-[52px] items-center gap-[5px] whitespace-nowrap rounded-2xl border border-line bg-surface px-[10px] font-[PeydaHeader,Tahoma,Arial,sans-serif] text-base font-black text-brand transition-[border-color,background-color,color] duration-200 hover:border-brand-border hover:bg-surface-muted aria-[expanded=true]:border-brand-border aria-[expanded=true]:bg-surface-muted motion-reduce:transition-none"
         type="button"
         aria-expanded={open}
         aria-controls="site-category-panel"
         onPointerEnter={(event) => {
           if (event.pointerType === "mouse") {
-            cancelClose();
-            setOpen(true);
+            openDropdown();
           }
         }}
         onPointerLeave={(event) => {
@@ -82,8 +102,8 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
         }}
         onClick={(event) => {
           cancelClose();
-          if (event.detail === 0) setOpen((value) => !value);
-          else setOpen(true);
+          if (event.detail === 0 && open) closeDropdown();
+          else openDropdown();
         }}
       >
         <FiMenu className="h-[21px] w-[21px] shrink-0" aria-hidden="true" />
@@ -93,11 +113,11 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
           aria-hidden="true"
         />
       </button>
-      {open &&
+      {mounted &&
         createPortal(
-          <div className="pointer-events-none fixed inset-0 z-[80] font-[PeydaHeader,Tahoma,Arial,sans-serif]">
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 top-[172px] z-[80] font-[PeydaHeader,Tahoma,Arial,sans-serif]">
             <button
-              className="pointer-events-auto absolute inset-x-0 bottom-0 top-[170px] w-full cursor-default bg-[rgba(10,15,25,.58)] animate-[site-category-fade_.24s_ease_both] motion-reduce:animate-none"
+              className="pointer-events-auto absolute inset-0 w-full cursor-default bg-transparent"
               type="button"
               aria-label={
                 locale === "fa"
@@ -106,14 +126,17 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
                     ? "إغلاق الفئات"
                     : "Close categories"
               }
-              onClick={() => setOpen(false)}
+              onClick={closeDropdown}
             />
             <div
               ref={dialogRef}
               id="site-category-panel"
-              className="pointer-events-auto absolute top-[170px] left-1/2 flex h-[min(500px,calc(100dvh-190px))] min-h-[250px] w-[min(1120px,calc(100vw-40px))] -translate-x-1/2 flex-col rounded-3xl bg-white p-6 shadow-[0_25px_75px_rgba(20,30,45,.2)] outline-none animate-[site-category-enter_.24s_ease_both] max-[760px]:top-[min(214px,28dvh)] max-[760px]:max-h-[calc(100dvh-min(226px,30dvh))] max-[760px]:w-[calc(100vw-24px)] max-[760px]:rounded-[18px] max-[760px]:p-4 motion-reduce:animate-none"
+              className={`pointer-events-auto absolute top-0 left-1/2 flex max-h-[calc(100dvh-190px)] w-[min(1120px,calc(100vw-40px))] flex-col overflow-hidden rounded-3xl bg-surface p-6 shadow-panel outline-none max-[760px]:w-[calc(100vw-24px)] max-[760px]:p-4 motion-reduce:-translate-x-1/2 motion-reduce:animate-none ${
+                open
+                  ? "animate-[site-category-enter_.24s_ease_both]"
+                  : "animate-[site-category-exit_.2s_ease_both]"
+              }`}
               role="dialog"
-              aria-modal="true"
               aria-label={label}
               tabIndex={-1}
               dir="rtl"
@@ -123,21 +146,44 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
               onPointerLeave={(event) => {
                 if (event.pointerType === "mouse") scheduleClose();
               }}
+              onAnimationEnd={(event) => {
+                if (event.currentTarget === event.target && !open) setMounted(false);
+              }}
             >
-              <div className="flex items-center justify-between border-b border-[#edf0f4] pb-4 text-xl font-black text-[#303638]">
+              <div className="flex shrink-0 items-center justify-between gap-4 border-b border-line-soft pb-4 text-xl font-black text-content-strong max-[760px]:text-base">
                 <strong>{label}</strong>
-                <button
-                  className="grid h-8 w-8 place-items-center rounded-full bg-[#f4f6f8] text-[#8a95a4]"
-                  type="button"
-                  onClick={() => setOpen(false)}
-                  aria-label={locale === "fa" ? "بستن" : locale === "ar" ? "إغلاق" : "Close"}
-                >
-                  <FiX className="h-5 w-5" aria-hidden="true" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <Link
+                    className="inline-flex h-9 items-center gap-2 rounded-xl bg-surface-dark px-4 text-sm font-black text-content-inverse transition-colors duration-200 hover:bg-surface-darker focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus max-[760px]:px-3 max-[760px]:text-xs motion-reduce:transition-none"
+                    href={`/${locale}/products`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      closeDropdown();
+                    }}
+                  >
+                    {allProductsLabel}
+                    <DirectionArrow className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                  <button
+                    className="grid h-9 w-9 place-items-center rounded-full bg-surface-muted text-content-subtle transition-colors duration-200 hover:bg-line hover:text-content focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus motion-reduce:transition-none"
+                    type="button"
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      closeDropdown();
+                    }}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      if (event.detail === 0) closeDropdown();
+                    }}
+                    aria-label={locale === "fa" ? "بستن" : locale === "ar" ? "إغلاق" : "Close"}
+                  >
+                    <FiX className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
               {categories.length ? (
                 <nav
-                  className="grid flex-1 grid-cols-4 content-start gap-[14px] overflow-y-auto py-[22px] max-[1050px]:grid-cols-3 max-[760px]:grid-cols-1 max-[760px]:gap-[9px] max-[760px]:py-[14px]"
+                  className="grid max-h-[calc(100dvh-286px)] grid-cols-3 content-start gap-4 overflow-y-auto py-5 pe-1 max-[760px]:grid-cols-1 max-[760px]:gap-3 max-[760px]:py-4"
                   aria-label={label}
                 >
                   {categories.map((category) => {
@@ -148,33 +194,46 @@ export function CategoryDropdown({ locale, label, categories }: CategoryDropdown
                     return (
                       <Link
                         key={category.id}
-                        className="flex min-h-24 min-w-0 items-center gap-3 rounded-2xl border border-[#edf0f4] p-[10px] text-[15px] font-bold text-[#414c59] transition-[border-color,box-shadow] duration-200 hover:border-[#f6b477] hover:shadow-[0_6px_18px_rgba(247,121,16,.12)] focus-visible:border-[#f6b477] max-[760px]:min-h-[70px] max-[760px]:text-[13px] motion-reduce:transition-none"
+                        className="group/card relative flex min-h-[128px] min-w-0 items-center gap-4 overflow-hidden rounded-[22px] border border-line bg-surface p-3 text-content transition-[transform,background-color] duration-200 hover:-translate-y-0.5 hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus max-[760px]:min-h-[92px] max-[760px]:gap-3 max-[760px]:rounded-2xl max-[760px]:p-2.5 motion-reduce:transition-none"
                         href={`/${locale}/products?categoryId=${encodeURIComponent(category.id)}`}
-                        onClick={() => setOpen(false)}
+                        onClick={closeDropdown}
                       >
-                        <span className="relative grid h-[70px] w-[70px] shrink-0 place-items-center overflow-hidden rounded-xl bg-[#f6f7f8] font-[Arial,sans-serif] text-[19px] font-black text-[#e57617] max-[760px]:h-[52px] max-[760px]:w-[52px]">
+                        <span className="relative grid h-[102px] w-[102px] shrink-0 place-items-center overflow-hidden rounded-[18px] bg-surface-soft font-[Arial,sans-serif] text-xl font-black text-brand max-[760px]:h-[70px] max-[760px]:w-[70px] max-[760px]:rounded-[14px]">
                           {src ? (
-                            <Image className="object-contain" src={src} alt="" fill sizes="80px" />
+                            <Image
+                              className="object-contain p-1 transition-transform duration-300 group-hover/card:scale-105 motion-reduce:transition-none"
+                              src={src}
+                              alt=""
+                              fill
+                              sizes="102px"
+                            />
                           ) : (
                             <span aria-hidden="true">LS</span>
                           )}
                         </span>
-                        <span>{title}</span>
-                        <FiGrid className="ms-auto h-5 w-5 text-[#e57617]" aria-hidden="true" />
+                        <span className="flex min-w-0 flex-1 flex-col gap-2">
+                          <strong className="line-clamp-2 text-base font-black leading-7 text-content-strong max-[760px]:text-sm">
+                            {title}
+                          </strong>
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-content-subtle transition-colors duration-200 group-hover/card:text-brand-strong motion-reduce:transition-none">
+                            {viewProductsLabel}
+                            <DirectionArrow
+                              className={`h-4 w-4 transition-transform duration-200 motion-reduce:transition-none ${
+                                locale === "en"
+                                  ? "group-hover/card:translate-x-1"
+                                  : "group-hover/card:-translate-x-1"
+                              }`}
+                              aria-hidden="true"
+                            />
+                          </span>
+                        </span>
                       </Link>
                     );
                   })}
                 </nav>
               ) : (
-                <p className="flex-1 p-6 text-[#7b8694]">{emptyLabel}</p>
+                <p className="py-8 text-center text-content-muted">{emptyLabel}</p>
               )}
-              <Link
-                className="self-start rounded-xl bg-[#fff0e2] px-4 py-[10px] text-sm font-black text-[#c7640b] hover:bg-[#fce0c5]"
-                href={`/${locale}/products`}
-                onClick={() => setOpen(false)}
-              >
-                {allProductsLabel} <span aria-hidden="true">←</span>
-              </Link>
             </div>
           </div>,
           document.body,

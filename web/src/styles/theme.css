@@ -1,0 +1,59 @@
+:root {
+  --theme-brand: #f77910;
+  --theme-brand-hover: #df6508;
+  --theme-brand-strong: #df6508;
+  --theme-brand-border: #f77910;
+  --theme-surface: #ffffff;
+  --theme-surface-muted: #f5f6f7;
+  --theme-surface-soft: #eff1f3;
+  --theme-surface-dark: #292c31;
+  --theme-content: #50545b;
+  --theme-content-strong: #17191c;
+  --theme-content-muted: #7a8089;
+  --theme-content-subtle: #7a8089;
+  --theme-content-inverse: #ffffff;
+  --theme-content-inverse-soft: #f5f6f7;
+  --theme-content-on-brand: #17191c;
+  --theme-content-dark-muted: #c5c8cd;
+  --theme-border: #e2e5e9;
+  --theme-border-soft: #eff1f3;
+  --theme-focus: #f77910;
+  --theme-surface-darker: #17191c;
+  --theme-media-warm: #eff1f3;
+  --theme-media-warm-content: #50545b;
+  --theme-map-surface: #eff1f3;
+  --theme-steel-start: #f5f6f7;
+  --theme-steel-middle: #c5c8cd;
+  --theme-steel-end: #7a8089;
+  --theme-shadow-panel: 0 16px 40px rgb(23 25 28 / 10%);
+  --theme-shadow-focus: 0 0 0 3px rgb(247 121 16 / 18%);
+  --theme-shadow-object: 8px 10px 14px rgb(23 25 28 / 14%);
+}
+
+@theme inline {
+  --color-brand: var(--theme-brand);
+  --color-brand-hover: var(--theme-brand-hover);
+  --color-brand-strong: var(--theme-brand-strong);
+  --color-brand-border: var(--theme-brand-border);
+  --color-surface: var(--theme-surface);
+  --color-surface-muted: var(--theme-surface-muted);
+  --color-surface-soft: var(--theme-surface-soft);
+  --color-surface-dark: var(--theme-surface-dark);
+  --color-content: var(--theme-content);
+  --color-content-strong: var(--theme-content-strong);
+  --color-content-muted: var(--theme-content-muted);
+  --color-content-subtle: var(--theme-content-subtle);
+  --color-content-inverse: var(--theme-content-inverse);
+  --color-content-inverse-soft: var(--theme-content-inverse-soft);
+  --color-content-on-brand: var(--theme-content-on-brand);
+  --color-content-dark-muted: var(--theme-content-dark-muted);
+  --color-line: var(--theme-border);
+  --color-line-soft: var(--theme-border-soft);
+  --color-focus: var(--theme-focus);
+  --color-surface-darker: var(--theme-surface-darker);
+  --color-media-warm: var(--theme-media-warm);
+  --color-media-warm-content: var(--theme-media-warm-content);
+  --color-map-surface: var(--theme-map-surface);
+  --shadow-panel: var(--theme-shadow-panel);
+  --shadow-focus: var(--theme-shadow-focus);
+}
