@@ -1,3 +1,7 @@
 export { AboutPage } from './pages/AboutPage'
 export { ContactsPage } from './pages/ContactsPage'
 export { MessagesPage } from './pages/MessagesPage'
+export { BannersPage } from './pages/BannersPage'
+export { BannerSectionPage } from './pages/BannerSectionPage'
+export { HomeLayoutPage } from './pages/HomeLayoutPage'
+export { HomePageSettingsPage } from './pages/HomePageSettingsPage'

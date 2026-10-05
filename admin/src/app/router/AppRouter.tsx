@@ -10,7 +10,15 @@ import {
     ProductsPage,
 } from '@/features/catalog'
 import { ArticlesPage, BlogCategoriesPage, BlogTagsPage } from '@/features/blog'
-import { AboutPage, ContactsPage, MessagesPage } from '@/features/site-content'
+import {
+    AboutPage,
+    BannerSectionPage,
+    BannersPage,
+    ContactsPage,
+    MessagesPage,
+    HomeLayoutPage,
+    HomePageSettingsPage,
+} from '@/features/site-content'
 import { ProtectedRoute } from './ProtectedRoute'
 import { DashboardRouteFrame } from '@/components/layouts/DashboardLayout'
 
@@ -50,6 +58,19 @@ export function AppRouter() {
                     />
                     <Route path="blog/tags" element={<BlogTagsPage />} />
                     <Route path="site/about" element={<AboutPage />} />
+                    <Route path="site/banners" element={<BannersPage />} />
+                    <Route
+                        path="site/banners/:sectionId"
+                        element={<BannerSectionPage />}
+                    />
+                    <Route
+                        path="site/home-layout"
+                        element={<HomeLayoutPage />}
+                    />
+                    <Route
+                        path="site/home-settings"
+                        element={<HomePageSettingsPage />}
+                    />
                     <Route path="site/contacts" element={<ContactsPage />} />
                     <Route path="site/messages" element={<MessagesPage />} />
                     <Route path="languages" element={<LanguagesPage />} />

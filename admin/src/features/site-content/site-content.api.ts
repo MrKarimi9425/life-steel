@@ -10,6 +10,13 @@ import type {
     PageValues,
     SiteLocation,
     SitePage,
+    SiteBanner,
+    BannerValues,
+    BannerViewport,
+    HomePageSettings,
+    HomePageSettingsValues,
+    HomeSection,
+    HomeSectionValues,
 } from './site-content.types'
 const base = 'site-content'
 async function get<T>(path: string): Promise<T> {
@@ -20,11 +27,81 @@ async function get<T>(path: string): Promise<T> {
 }
 export const siteKeys = {
     about: ['site-content', 'about'],
+    banners: ['site-content', 'banners'],
     contacts: ['site-content', 'contacts'],
     location: ['site-content', 'location'],
     messages: ['site-content', 'messages'],
+    settings: ['site-content', 'settings'],
+    sections: ['site-content', 'home-sections'],
 }
 export const siteContentApi = {
+    settings: () => get<HomePageSettings>('settings'),
+    saveSettings: (values: HomePageSettingsValues) =>
+        apiClient.put(`${base}/settings`, values),
+    sections: () => get<HomeSection[]>('home-sections'),
+    saveSection: (id: string | null, values: HomeSectionValues) =>
+        id
+            ? apiClient.put(`${base}/home-sections/${id}`, values)
+            : apiClient.post(`${base}/home-sections`, values),
+    setSectionStatus: (id: string, isActive: boolean) =>
+        apiClient.patch(`${base}/home-sections/${id}/status`, { isActive }),
+    reorderSections: (ids: string[]) =>
+        apiClient.put(`${base}/home-sections/order`, { ids }),
+    removeSection: async (id: string) =>
+        (
+            await apiClient.delete<
+                ApiResponse<{ removedFromStorage: boolean }>
+            >(`${base}/home-sections/${id}`)
+        ).data.data!,
+    banners: () => get<SiteBanner[]>('banners'),
+    saveBanner: (id: string | null, values: BannerValues) => {
+        const payload = {
+            ...values,
+            translations: values.translations.filter(
+                (item) => item.altText.trim() || item.targetUrl.trim(),
+            ),
+        }
+        return id
+            ? apiClient.put(`${base}/banners/${id}`, payload)
+            : apiClient.post(`${base}/banners`, payload)
+    },
+    reorderBanners: (ids: string[]) =>
+        apiClient.put(`${base}/banners/order`, { ids }),
+    saveBannerImage: async (
+        id: string,
+        languageId: string,
+        viewport: BannerViewport,
+        mediaId: string,
+    ) =>
+        (
+            await apiClient.put<
+                ApiResponse<
+                    SiteBanner & { removedPreviousImageFromStorage: boolean }
+                >
+            >(`${base}/banners/${id}/image`, {
+                languageId,
+                viewport,
+                mediaId,
+            })
+        ).data.data!,
+    removeBannerImage: async (
+        id: string,
+        languageId: string,
+        viewport: BannerViewport,
+    ) =>
+        (
+            await apiClient.delete<
+                ApiResponse<{ removedFromStorage: boolean }>
+            >(`${base}/banners/${id}/image`, {
+                params: { languageId, viewport },
+            })
+        ).data.data!,
+    removeBanner: async (id: string) =>
+        (
+            await apiClient.delete<
+                ApiResponse<{ removedFromStorage: boolean }>
+            >(`${base}/banners/${id}`)
+        ).data.data!,
     about: () => get<SitePage>('about'),
     saveAbout: (values: PageValues) =>
         apiClient.put(`${base}/about`, {

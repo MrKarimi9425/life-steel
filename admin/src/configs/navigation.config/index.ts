@@ -140,6 +140,36 @@ const navigationConfig: NavigationTree[] = [
         authority: [],
         subMenu: [
             {
+                key: 'site-home-settings',
+                path: '/site/home-settings',
+                title: 'تنظیمات صفحه اصلی',
+                translateKey: '',
+                icon: HomeIcon,
+                type: 'item',
+                authority: [],
+                subMenu: [],
+            },
+            {
+                key: 'site-home-layout',
+                path: '/site/home-layout',
+                title: 'چیدمان صفحه اصلی',
+                translateKey: '',
+                icon: HomeIcon,
+                type: 'item',
+                authority: [],
+                subMenu: [],
+            },
+            {
+                key: 'site-banners',
+                path: '/site/banners',
+                title: 'بنرهای سایت',
+                translateKey: '',
+                icon: HomeIcon,
+                type: 'item',
+                authority: [],
+                subMenu: [],
+            },
+            {
                 key: 'site-about',
                 path: '/site/about',
                 title: 'درباره ما',
@@ -238,7 +268,11 @@ export const getNavigationRouteKey = (
             const matchesSearch = [...expectedParams.entries()].every(
                 ([key, value]) => currentParams.get(key) === value,
             )
-            if (itemPathname === pathname && matchesSearch) return item.key
+            const matchesPath =
+                itemPathname === pathname ||
+                (itemPathname !== '/' &&
+                    pathname.startsWith(`${itemPathname}/`))
+            if (matchesPath && matchesSearch) return item.key
         }
         const nestedKey = getNavigationRouteKey(pathname, search, item.subMenu)
         if (nestedKey) return nestedKey

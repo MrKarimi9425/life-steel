@@ -35,7 +35,83 @@ export type SitePage = {
     media: { mediaId: string; displayOrder: number; media: MediaAsset }[]
 }
 export type PageValues = Pick<SitePage, 'isPublished' | 'translations'>
+export type BannerTranslation = {
+    languageId: string
+    altText: string
+    targetUrl: string
+    desktopImageId: string | null
+    tabletImageId: string | null
+    mobileImageId: string | null
+    desktopImage: MediaAsset | null
+    tabletImage: MediaAsset | null
+    mobileImage: MediaAsset | null
+}
+export type BannerViewport = 'desktop' | 'tablet' | 'mobile'
+export type SiteBanner = {
+    id: string
+    sectionId: string
+    isPublished: boolean
+    displayOrder: number
+    translations: BannerTranslation[]
+}
+export type BannerValues = {
+    sectionId: string
+    isPublished: boolean
+    translations: Pick<
+        BannerTranslation,
+        'languageId' | 'altText' | 'targetUrl'
+    >[]
+}
+export type HomeSectionType =
+    | 'HERO'
+    | 'CATEGORIES'
+    | 'FEATURED_PRODUCT'
+    | 'SELECTED_PRODUCTS'
+    | 'BENEFITS'
+    | 'BLOG'
+    | 'CONTACT'
+    | 'BANNER_FULL'
+    | 'BANNER_SPLIT'
+export type SiteSectionPage = 'HOME' | 'PRODUCTS' | 'BLOG'
+export type HomeSection = {
+    id: string
+    page: SiteSectionPage
+    type: HomeSectionType
+    title: string | null
+    isActive: boolean
+    displayOrder: number
+    banners: SiteBanner[]
+}
+export type HomeSectionValues = {
+    type: Extract<HomeSectionType, 'BANNER_FULL' | 'BANNER_SPLIT'>
+    title: string
+}
+export const homeSectionLabels: Record<HomeSectionType, string> = {
+    HERO: 'اسلایدر اصلی',
+    CATEGORIES: 'دسته بندی ها',
+    FEATURED_PRODUCT: 'محصول پیشنهادی',
+    SELECTED_PRODUCTS: 'محصولات منتخب',
+    BENEFITS: 'مزیت ها',
+    BLOG: 'مقالات',
+    CONTACT: 'دعوت به تماس',
+    BANNER_FULL: 'بنر تمام عرض',
+    BANNER_SPLIT: 'دو بنر کنار هم',
+}
+export const siteSectionPageLabels: Record<SiteSectionPage, string> = {
+    HOME: 'صفحه اصلی',
+    PRODUCTS: 'صفحه محصولات',
+    BLOG: 'صفحه وبلاگ',
+}
 export type SiteLocation = { latitude: number | null; longitude: number | null }
+export type HomePageSettings = {
+    id: string
+    selectedProductsLimit: number
+    updatedAt: string
+}
+export type HomePageSettingsValues = Pick<
+    HomePageSettings,
+    'selectedProductsLimit'
+>
 export type MessageStatus = 'NEW' | 'READ' | 'FOLLOWED_UP'
 export const messageStatuses: { value: MessageStatus; label: string }[] = [
     { value: 'NEW', label: 'جدید' },
