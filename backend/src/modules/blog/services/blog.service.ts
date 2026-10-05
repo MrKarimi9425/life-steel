@@ -249,8 +249,12 @@ export class BlogService {
           asset.processingStatus !== MediaProcessingStatus.READY ||
           !asset.path ||
           asset.articleMedia.some((item) => item.articleId !== id) ||
+          asset.bannerDesktop !== null ||
+          asset.bannerTablet !== null ||
+          asset.bannerMobile !== null ||
           asset._count.productMedia ||
           asset._count.productCovers ||
+          asset._count.productColorImages ||
           asset._count.categoryImages ||
           asset._count.sitePageMedia,
       )

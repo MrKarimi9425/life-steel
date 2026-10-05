@@ -21,6 +21,196 @@ const baseProduct = (): CreateProductDto => ({
 });
 
 describe('CatalogService product rules', () => {
+  it('filters public products by visible base or color price', async () => {
+    const findMany = jest.fn().mockResolvedValue([]);
+    const count = jest.fn().mockResolvedValue(0);
+    const prisma = {
+      language: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'fa' }),
+      },
+      product: { findMany, count },
+      $transaction: jest.fn((queries: Array<Promise<unknown>>) =>
+        Promise.all(queries),
+      ),
+    };
+    const service = new CatalogService(
+      prisma as unknown as PrismaService,
+      {} as MediaService,
+      {
+        publicPricings: jest.fn().mockResolvedValue(new Map()),
+      } as unknown as ProductPricingService,
+    );
+
+    await service.listPublicProducts({
+      language: 'fa',
+      minPrice: '1200000',
+      maxPrice: '3500000',
+      page: 1,
+      pageSize: 12,
+    });
+
+    const firstCall = findMany.mock.calls[0] as unknown as
+      [{ where: unknown }] | undefined;
+    const where = firstCall?.[0].where;
+    expect(where).toMatchObject({
+      showPrice: true,
+      OR: [
+        { basePrice: { gte: 1200000n, lte: 3500000n } },
+        {
+          colorPrices: {
+            some: { amount: { gte: 1200000n, lte: 3500000n } },
+          },
+        },
+      ],
+    });
+    expect(count).toHaveBeenCalledWith({ where });
+  });
+
+  it.each([
+    [
+      'newest',
+      [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+    ],
+    ['oldest', [{ publishedAt: 'asc' }, { createdAt: 'asc' }, { id: 'asc' }]],
+  ] as const)(
+    'uses stable public product sorting for %s',
+    async (sort, orderBy) => {
+      const findMany = jest.fn().mockResolvedValue([]);
+      const prisma = {
+        language: {
+          findFirst: jest.fn().mockResolvedValue({ id: 'fa' }),
+        },
+        product: {
+          findMany,
+          count: jest.fn().mockResolvedValue(0),
+        },
+        $transaction: jest.fn((queries: Array<Promise<unknown>>) =>
+          Promise.all(queries),
+        ),
+      };
+      const service = new CatalogService(
+        prisma as unknown as PrismaService,
+        {} as MediaService,
+        {
+          publicPricings: jest.fn().mockResolvedValue(new Map()),
+        } as unknown as ProductPricingService,
+      );
+
+      await service.listPublicProducts({
+        language: 'fa',
+        sort,
+        page: 1,
+        pageSize: 12,
+      });
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({ orderBy }),
+      );
+    },
+  );
+
+  it('rejects a public price range with a minimum above the maximum', async () => {
+    const service = new CatalogService(
+      {} as PrismaService,
+      {} as MediaService,
+      {} as ProductPricingService,
+    );
+
+    await expect(
+      service.listPublicProducts({
+        language: 'fa',
+        minPrice: '500',
+        maxPrice: '100',
+        page: 1,
+        pageSize: 12,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('combines different attributes with AND and options of one attribute with OR', async () => {
+    const findMany = jest.fn().mockResolvedValue([]);
+    const prisma = {
+      language: {
+        findFirst: jest.fn().mockResolvedValue({ id: 'fa' }),
+      },
+      product: {
+        findMany,
+        count: jest.fn().mockResolvedValue(0),
+      },
+      $transaction: jest.fn((queries: Array<Promise<unknown>>) =>
+        Promise.all(queries),
+      ),
+    };
+    const service = new CatalogService(
+      prisma as unknown as PrismaService,
+      {} as MediaService,
+      {
+        publicPricings: jest.fn().mockResolvedValue(new Map()),
+      } as unknown as ProductPricingService,
+    );
+
+    await service.listPublicProducts({
+      language: 'fa',
+      attributeFilters: [
+        'color:option:black',
+        'color:option:white',
+        'width:min:45',
+        'width:max:60',
+        'mounted:boolean:true',
+      ],
+      page: 1,
+      pageSize: 12,
+    });
+
+    const firstCall = findMany.mock.calls[0] as unknown as
+      [{ where: { AND: unknown } }] | undefined;
+    expect(firstCall?.[0].where.AND).toEqual([
+      {
+        attributeValues: {
+          some: {
+            attributeId: 'color',
+            selectedOptions: {
+              some: { optionId: { in: ['black', 'white'] } },
+            },
+          },
+        },
+      },
+      {
+        attributeValues: {
+          some: {
+            attributeId: 'width',
+            numberValue: { gte: 45, lte: 60 },
+          },
+        },
+      },
+      {
+        attributeValues: {
+          some: {
+            attributeId: 'mounted',
+            booleanValue: true,
+          },
+        },
+      },
+    ]);
+  });
+
+  it('rejects malformed multi-attribute filters', async () => {
+    const service = new CatalogService(
+      {} as PrismaService,
+      {} as MediaService,
+      {} as ProductPricingService,
+    );
+
+    await expect(
+      service.listPublicProducts({
+        language: 'fa',
+        attributeFilters: ['width:min:90', 'width:max:40'],
+        page: 1,
+        pageSize: 12,
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
   it.each([false, 'error'])(
     'reports incomplete cleanup after deleting a product: %s',
     async (outcome) => {

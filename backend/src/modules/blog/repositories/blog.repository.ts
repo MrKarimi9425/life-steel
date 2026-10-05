@@ -273,10 +273,14 @@ export class BlogRepository {
         kind: true,
         processingStatus: true,
         articleMedia: { select: { articleId: true } },
+        bannerDesktop: { select: { bannerId: true } },
+        bannerTablet: { select: { bannerId: true } },
+        bannerMobile: { select: { bannerId: true } },
         _count: {
           select: {
             productMedia: true,
             productCovers: true,
+            productColorImages: true,
             categoryImages: true,
             sitePageMedia: true,
           },

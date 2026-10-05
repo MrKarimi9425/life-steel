@@ -22,6 +22,7 @@ import {
 import {
   ContactInformationType,
   ContactMessageStatus,
+  HomeSectionType,
 } from '../../../generated/prisma/client';
 const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
@@ -42,6 +43,43 @@ export class SaveSitePageDto {
 }
 export class SiteGalleryDto {
   @IsArray() @ArrayUnique() @IsString({ each: true }) mediaIds!: string[];
+}
+export class SiteBannerTranslationDto {
+  @IsString() languageId!: string;
+  @Transform(trim) @IsString() @MinLength(1) @MaxLength(255) altText!: string;
+  @Transform(trim)
+  @IsString()
+  @MaxLength(2048)
+  targetUrl!: string;
+}
+export class SaveSiteBannerDto {
+  @IsString() sectionId!: string;
+  @IsBoolean() isPublished!: boolean;
+  @IsArray()
+  @ArrayUnique((item: SiteBannerTranslationDto) => item?.languageId)
+  @ValidateNested({ each: true })
+  @Type(() => SiteBannerTranslationDto)
+  translations!: SiteBannerTranslationDto[];
+}
+export class SaveHomeSectionDto {
+  @IsIn([HomeSectionType.BANNER_FULL, HomeSectionType.BANNER_SPLIT])
+  type!: HomeSectionType;
+
+  @Transform(trim) @IsString() @MinLength(1) @MaxLength(150) title!: string;
+}
+export class HomeSectionStatusDto {
+  @IsBoolean() isActive!: boolean;
+}
+export class SiteBannerImageDto {
+  @IsString() mediaId!: string;
+  @IsString() languageId!: string;
+  @IsIn(['desktop', 'tablet', 'mobile']) viewport!:
+    'desktop' | 'tablet' | 'mobile';
+}
+export class SiteBannerImageTargetDto {
+  @IsString() languageId!: string;
+  @IsIn(['desktop', 'tablet', 'mobile']) viewport!:
+    'desktop' | 'tablet' | 'mobile';
 }
 export class ContactTranslationDto {
   @IsString() languageId!: string;
@@ -71,6 +109,13 @@ export class SaveLocationDto {
   @Min(-180)
   @Max(180)
   longitude!: number | null;
+}
+export class SaveHomePageSettingsDto {
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(8)
+  selectedProductsLimit!: number;
 }
 export class CreateContactMessageDto {
   @Transform(trim) @IsString() @MinLength(2) @MaxLength(150) name!: string;

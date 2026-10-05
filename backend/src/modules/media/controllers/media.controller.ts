@@ -51,7 +51,10 @@ export class MediaController {
     }
     return createSuccessResponse(
       'رسانه بارگذاری شد.',
-      await this.media.upload(file, imageProfile === 'square-max-1200'),
+      await this.media.upload(
+        file,
+        imageProfile as 'square-max-1200' | undefined,
+      ),
     );
   }
 

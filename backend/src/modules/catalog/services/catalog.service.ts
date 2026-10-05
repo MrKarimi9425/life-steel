@@ -303,6 +303,7 @@ export class CatalogService {
           }
         : {}),
       ...this.attributeFilter(query),
+      ...this.priceFilter(query),
     };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
@@ -743,6 +744,7 @@ export class CatalogService {
         ? { categories: { some: { categoryId: query.categoryId } } }
         : {}),
       ...this.attributeFilter(query),
+      ...this.priceFilter(query),
     };
     const [items, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
@@ -775,9 +777,17 @@ export class CatalogService {
         },
         orderBy:
           query.sort === 'newest'
-            ? [{ publishedAt: 'desc' as const }]
+            ? [
+                { publishedAt: 'desc' as const },
+                { createdAt: 'desc' as const },
+                { id: 'desc' as const },
+              ]
             : query.sort === 'oldest'
-              ? [{ publishedAt: 'asc' as const }]
+              ? [
+                  { publishedAt: 'asc' as const },
+                  { createdAt: 'asc' as const },
+                  { id: 'asc' as const },
+                ]
               : [
                   { displayOrder: 'asc' as const },
                   { publishedAt: 'desc' as const },
@@ -839,6 +849,7 @@ export class CatalogService {
           where: { isActive: true },
           select: {
             id: true,
+            colorHex: true,
             translations: { where: { languageId: language.id } },
           },
           orderBy: { displayOrder: 'asc' },
@@ -928,7 +939,15 @@ export class CatalogService {
       product.id,
       product.translations[0]!.languageId,
     );
-    if (!primaryCategoryId) return { ...product, pricing, relatedProducts: [] };
+    const publicProduct = {
+      ...product,
+      attributeValues: product.attributeValues.map((value) => ({
+        ...value,
+        numberValue: value.numberValue?.toString() ?? null,
+      })),
+    };
+    if (!primaryCategoryId)
+      return { ...publicProduct, pricing, relatedProducts: [] };
 
     const relatedProducts = await this.prisma.product.findMany({
       where: {
@@ -976,7 +995,7 @@ export class CatalogService {
       product.translations[0]!.languageId,
     );
     return {
-      ...product,
+      ...publicProduct,
       pricing,
       relatedProducts: relatedProducts.map((item) => ({
         ...item,
@@ -1128,33 +1147,168 @@ export class CatalogService {
         'حداقل مقدار نمیتواند از حداکثر بیشتر باشد.',
       );
     }
+    if (
+      query.minPrice !== undefined &&
+      query.maxPrice !== undefined &&
+      BigInt(query.minPrice) > BigInt(query.maxPrice)
+    ) {
+      throw new BadRequestException(
+        'حداقل قیمت نمیتواند از حداکثر قیمت بیشتر باشد.',
+      );
+    }
+    this.parseAttributeFilters(query.attributeFilters);
+  }
+
+  private priceFilter(query: ListProductsQueryDto): Prisma.ProductWhereInput {
+    if (query.minPrice === undefined && query.maxPrice === undefined) return {};
+    const amount = {
+      ...(query.minPrice !== undefined ? { gte: BigInt(query.minPrice) } : {}),
+      ...(query.maxPrice !== undefined ? { lte: BigInt(query.maxPrice) } : {}),
+    };
+    return {
+      showPrice: true,
+      OR: [{ basePrice: amount }, { colorPrices: { some: { amount } } }],
+    };
   }
 
   private attributeFilter(
     query: ListProductsQueryDto,
   ): Prisma.ProductWhereInput {
-    if (!query.attributeId) return {};
-    return {
-      attributeValues: {
-        some: {
-          attributeId: query.attributeId,
-          ...(query.optionId
-            ? { selectedOptions: { some: { optionId: query.optionId } } }
-            : {}),
-          ...(query.minNumber !== undefined || query.maxNumber !== undefined
-            ? {
-                numberValue: {
-                  gte: query.minNumber,
-                  lte: query.maxNumber,
-                },
-              }
-            : {}),
-          ...(query.booleanValue !== undefined
-            ? { booleanValue: query.booleanValue }
-            : {}),
+    const conditions: Prisma.ProductWhereInput[] = [];
+    if (query.attributeId) {
+      conditions.push({
+        attributeValues: {
+          some: {
+            attributeId: query.attributeId,
+            ...(query.optionId
+              ? { selectedOptions: { some: { optionId: query.optionId } } }
+              : {}),
+            ...(query.minNumber !== undefined || query.maxNumber !== undefined
+              ? {
+                  numberValue: {
+                    gte: query.minNumber,
+                    lte: query.maxNumber,
+                  },
+                }
+              : {}),
+            ...(query.booleanValue !== undefined
+              ? { booleanValue: query.booleanValue }
+              : {}),
+          },
         },
-      },
-    };
+      });
+    }
+    for (const filter of this.parseAttributeFilters(query.attributeFilters)) {
+      conditions.push({
+        attributeValues: {
+          some: {
+            attributeId: filter.attributeId,
+            ...(filter.optionIds.length
+              ? {
+                  selectedOptions: {
+                    some: { optionId: { in: filter.optionIds } },
+                  },
+                }
+              : {}),
+            ...(filter.minimum !== undefined || filter.maximum !== undefined
+              ? {
+                  numberValue: {
+                    ...(filter.minimum !== undefined
+                      ? { gte: filter.minimum }
+                      : {}),
+                    ...(filter.maximum !== undefined
+                      ? { lte: filter.maximum }
+                      : {}),
+                  },
+                }
+              : {}),
+            ...(filter.booleanValue !== undefined
+              ? { booleanValue: filter.booleanValue }
+              : {}),
+          },
+        },
+      });
+    }
+    return conditions.length ? { AND: conditions } : {};
+  }
+
+  private parseAttributeFilters(values: string[] | undefined) {
+    const filters = new Map<
+      string,
+      {
+        attributeId: string;
+        optionIds: string[];
+        minimum?: number;
+        maximum?: number;
+        booleanValue?: boolean;
+        present?: boolean;
+      }
+    >();
+    for (const value of values ?? []) {
+      const parts = value.split(':');
+      const [attributeId, operator, rawValue] = parts;
+      if (
+        !attributeId ||
+        !/^[A-Za-z0-9_-]+$/.test(attributeId) ||
+        !operator ||
+        rawValue === undefined ||
+        parts.length !== 3
+      ) {
+        throw new BadRequestException('فیلتر ویژگی معتبر نیست.');
+      }
+      const filter = filters.get(attributeId) ?? {
+        attributeId,
+        optionIds: [],
+      };
+      if (operator === 'option') {
+        if (!/^[A-Za-z0-9_-]+$/.test(rawValue))
+          throw new BadRequestException('گزینه ویژگی معتبر نیست.');
+        if (!filter.optionIds.includes(rawValue))
+          filter.optionIds.push(rawValue);
+      } else if (operator === 'min' || operator === 'max') {
+        const number = Number(rawValue);
+        if (!Number.isFinite(number))
+          throw new BadRequestException('مقدار عددی ویژگی معتبر نیست.');
+        if (operator === 'min') filter.minimum = number;
+        else filter.maximum = number;
+      } else if (operator === 'boolean') {
+        if (rawValue !== 'true' && rawValue !== 'false')
+          throw new BadRequestException('مقدار بله یا خیر معتبر نیست.');
+        const booleanValue = rawValue === 'true';
+        if (
+          filter.booleanValue !== undefined &&
+          filter.booleanValue !== booleanValue
+        )
+          throw new BadRequestException('فیلتر بله یا خیر تکراری است.');
+        filter.booleanValue = booleanValue;
+      } else if (operator === 'present' && rawValue === 'true') {
+        filter.present = true;
+      } else {
+        throw new BadRequestException('نوع فیلتر ویژگی معتبر نیست.');
+      }
+      filters.set(attributeId, filter);
+    }
+    for (const filter of filters.values()) {
+      if (
+        filter.minimum !== undefined &&
+        filter.maximum !== undefined &&
+        filter.minimum > filter.maximum
+      )
+        throw new BadRequestException(
+          'حداقل مقدار ویژگی نمیتواند از حداکثر بیشتر باشد.',
+        );
+      const modes = [
+        filter.optionIds.length > 0,
+        filter.minimum !== undefined || filter.maximum !== undefined,
+        filter.booleanValue !== undefined,
+        filter.present === true,
+      ].filter(Boolean).length;
+      if (modes > 1)
+        throw new BadRequestException(
+          'برای هر ویژگی فقط یک نوع فیلتر مجاز است.',
+        );
+    }
+    return [...filters.values()];
   }
 
   private prepareProductTranslations(

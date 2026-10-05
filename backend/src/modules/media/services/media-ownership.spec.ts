@@ -10,6 +10,9 @@ describe('Product media ownership', () => {
       path: 'image/optimized.webp',
       productMedia: [] as Array<{ productId: string }>,
       productCovers: [] as Array<{ id: string }>,
+      bannerDesktop: null,
+      bannerTablet: null,
+      bannerMobile: null,
       _count: { articleMedia: 0, sitePageMedia: 0, categoryImages: 0 },
     };
     const findMany = jest.fn().mockResolvedValue([asset]);

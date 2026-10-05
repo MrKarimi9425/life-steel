@@ -75,80 +75,161 @@ enum ContactMessageStatus {
   FOLLOWED_UP
 }
 
+enum HomeSectionType {
+  HERO
+  CATEGORIES
+  FEATURED_PRODUCT
+  SELECTED_PRODUCTS
+  BENEFITS
+  BLOG
+  CONTACT
+  BANNER_FULL
+  BANNER_SPLIT
+}
+
+enum SiteSectionPage {
+  HOME
+  PRODUCTS
+  BLOG
+}
+
+model HomeSection {
+  id           String          @id @default(cuid())
+  page         SiteSectionPage @default(HOME)
+  type         HomeSectionType
+  title        String?         @db.VarChar(150)
+  isActive     Boolean         @default(true) @map("is_active")
+  displayOrder Int             @default(0) @map("display_order")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+  banners      SiteBanner[]
+
+  @@index([page, isActive, displayOrder])
+  @@map("home_sections")
+}
+
 model SitePage {
-  id String @id @default(cuid())
-  key String @unique @db.VarChar(30)
-  isPublished Boolean @default(false) @map("is_published")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id           String                @id @default(cuid())
+  key          String                @unique @db.VarChar(30)
+  isPublished  Boolean               @default(false) @map("is_published")
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
   translations SitePageTranslation[]
-  media SitePageMedia[]
+  media        SitePageMedia[]
+
   @@map("site_pages")
 }
 
 model SitePageTranslation {
-  pageId String @map("page_id")
-  languageId String @map("language_id")
-  title String @db.VarChar(255)
-  content Json
-  seoTitle String? @map("seo_title") @db.VarChar(255)
-  seoDescription String? @map("seo_description") @db.VarChar(500)
-  page SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  pageId         String   @map("page_id")
+  languageId     String   @map("language_id")
+  title          String   @db.VarChar(255)
+  content        Json
+  seoTitle       String?  @map("seo_title") @db.VarChar(255)
+  seoDescription String?  @map("seo_description") @db.VarChar(500)
+  page           SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  language       Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
   @@id([pageId, languageId])
   @@index([languageId])
   @@map("site_page_translations")
 }
 
 model SitePageMedia {
-  pageId String @map("page_id")
-  mediaId String @map("media_id")
-  displayOrder Int @default(0) @map("display_order")
-  page SitePage @relation(fields: [pageId], references: [id], onDelete: Cascade)
-  media MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  pageId       String     @map("page_id")
+  mediaId      String     @map("media_id")
+  displayOrder Int        @default(0) @map("display_order")
+  page         SitePage   @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  media        MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+
   @@id([pageId, mediaId])
   @@index([mediaId])
   @@map("site_page_media")
 }
 
+model SiteBanner {
+  id           String                  @id @default(cuid())
+  sectionId    String                  @map("section_id")
+  isPublished  Boolean                 @default(false) @map("is_published")
+  displayOrder Int                     @default(0) @map("display_order")
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+  section      HomeSection             @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  translations SiteBannerTranslation[]
+
+  @@index([sectionId, isPublished, displayOrder])
+  @@map("site_banners")
+}
+
+model SiteBannerTranslation {
+  bannerId       String      @map("banner_id")
+  languageId     String      @map("language_id")
+  altText        String      @map("alt_text") @db.VarChar(255)
+  targetUrl      String      @map("target_url") @db.VarChar(2048)
+  desktopImageId String?     @unique @map("desktop_image_id")
+  tabletImageId  String?     @unique @map("tablet_image_id")
+  mobileImageId  String?     @unique @map("mobile_image_id")
+  banner         SiteBanner  @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+  language       Language    @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  desktopImage   MediaAsset? @relation("BannerDesktop", fields: [desktopImageId], references: [id], onDelete: SetNull)
+  tabletImage    MediaAsset? @relation("BannerTablet", fields: [tabletImageId], references: [id], onDelete: SetNull)
+  mobileImage    MediaAsset? @relation("BannerMobile", fields: [mobileImageId], references: [id], onDelete: SetNull)
+
+  @@id([bannerId, languageId])
+  @@index([languageId])
+  @@map("site_banner_translations")
+}
+
 model ContactInformation {
-  id String @id @default(cuid())
-  type ContactInformationType
-  isActive Boolean @default(true) @map("is_active")
-  displayOrder Int @default(0) @map("display_order")
+  id           String                          @id @default(cuid())
+  type         ContactInformationType
+  isActive     Boolean                         @default(true) @map("is_active")
+  displayOrder Int                             @default(0) @map("display_order")
   translations ContactInformationTranslation[]
+
   @@map("contact_information")
 }
 
 model ContactInformationTranslation {
-  contactId String @map("contact_id")
-  languageId String @map("language_id")
-  title String @db.VarChar(150)
-  value String @db.VarChar(2000)
-  contact ContactInformation @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  language Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
+  contactId  String             @map("contact_id")
+  languageId String             @map("language_id")
+  title      String             @db.VarChar(150)
+  value      String             @db.VarChar(2000)
+  contact    ContactInformation @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  language   Language           @relation(fields: [languageId], references: [id], onDelete: Cascade)
+
   @@id([contactId, languageId])
   @@index([languageId])
   @@map("contact_information_translations")
 }
 
 model SiteLocation {
-  id String @id @default("main")
-  latitude Float?
+  id        String @id @default("main")
+  latitude  Float?
   longitude Float?
+
   @@map("site_locations")
 }
 
+model SiteSettings {
+  id                    String   @id @default("main")
+  selectedProductsLimit Int      @default(6) @map("selected_products_limit")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+
+  @@map("site_settings")
+}
+
 model ContactMessage {
-  id String @id @default(cuid())
-  name String @db.VarChar(150)
-  phone String @db.VarChar(30)
-  email String? @db.VarChar(255)
-  subject String @db.VarChar(200)
-  message String @db.Text
-  status ContactMessageStatus @default(NEW)
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id        String               @id @default(cuid())
+  name      String               @db.VarChar(150)
+  phone     String               @db.VarChar(30)
+  email     String?              @db.VarChar(255)
+  subject   String               @db.VarChar(200)
+  message   String               @db.Text
+  status    ContactMessageStatus @default(NEW)
+  createdAt DateTime             @default(now()) @map("created_at")
+  updatedAt DateTime             @updatedAt @map("updated_at")
+
   @@index([status, createdAt])
   @@map("contact_messages")
 }
@@ -211,8 +292,9 @@ model Language {
   articleTranslations      BlogArticleTranslation[]
   blogCategoryTranslations BlogCategoryTranslation[]
   blogTagTranslations      BlogTagTranslation[]
-  sitePageTranslations SitePageTranslation[]
-  contactTranslations ContactInformationTranslation[]
+  sitePageTranslations     SitePageTranslation[]
+  siteBannerTranslations   SiteBannerTranslation[]
+  contactTranslations      ContactInformationTranslation[]
 
   @@index([isActive, displayOrder])
   @@map("languages")
@@ -244,29 +326,32 @@ model InterfacePhraseTranslation {
 }
 
 model MediaAsset {
-  id               String                @id @default(cuid())
-  kind             MediaKind
-  source           MediaSource
-  path             String?               @db.VarChar(1000)
-  externalUrl      String?               @map("external_url") @db.VarChar(2000)
-  originalFileName String?               @map("original_file_name") @db.VarChar(255)
-  mimeType         String?               @map("mime_type") @db.VarChar(160)
-  sizeBytes        BigInt?               @map("size_bytes")
-  width            Int?
-  height           Int?
-  durationSeconds  Int?                  @map("duration_seconds")
-  processingStatus MediaProcessingStatus @default(PENDING) @map("processing_status")
-  processingError  String?               @map("processing_error") @db.Text
-  createdAt        DateTime              @default(now()) @map("created_at")
-  updatedAt        DateTime              @updatedAt @map("updated_at")
-  variants         MediaVariant[]
-  translations     MediaTranslation[]
-  productMedia     ProductMedia[]
+  id                 String                 @id @default(cuid())
+  kind               MediaKind
+  source             MediaSource
+  path               String?                @db.VarChar(1000)
+  externalUrl        String?                @map("external_url") @db.VarChar(2000)
+  originalFileName   String?                @map("original_file_name") @db.VarChar(255)
+  mimeType           String?                @map("mime_type") @db.VarChar(160)
+  sizeBytes          BigInt?                @map("size_bytes")
+  width              Int?
+  height             Int?
+  durationSeconds    Int?                   @map("duration_seconds")
+  processingStatus   MediaProcessingStatus  @default(PENDING) @map("processing_status")
+  processingError    String?                @map("processing_error") @db.Text
+  createdAt          DateTime               @default(now()) @map("created_at")
+  updatedAt          DateTime               @updatedAt @map("updated_at")
+  variants           MediaVariant[]
+  translations       MediaTranslation[]
+  productMedia       ProductMedia[]
   productColorImages ProductColorImage[]
-  sitePageMedia SitePageMedia[]
-  productCovers    Product[]             @relation("ProductCover")
-  categoryImages   ProductCategory[]     @relation("ProductCategoryImage")
-  articleMedia     BlogArticleMedia[]
+  sitePageMedia      SitePageMedia[]
+  bannerDesktop      SiteBannerTranslation? @relation("BannerDesktop")
+  bannerTablet       SiteBannerTranslation? @relation("BannerTablet")
+  bannerMobile       SiteBannerTranslation? @relation("BannerMobile")
+  productCovers      Product[]              @relation("ProductCover")
+  categoryImages     ProductCategory[]      @relation("ProductCategoryImage")
+  articleMedia       BlogArticleMedia[]
 
   @@index([kind, processingStatus])
   @@map("media_assets")
@@ -366,14 +451,14 @@ model AttributeDefinitionTranslation {
 }
 
 model AttributeOption {
-  id           String                        @id @default(cuid())
-  attributeId  String                        @map("attribute_id")
-  colorHex     String?                       @map("color_hex") @db.VarChar(9)
-  isActive     Boolean                       @default(true) @map("is_active")
-  displayOrder Int                           @default(0) @map("display_order")
-  attribute    AttributeDefinition           @relation(fields: [attributeId], references: [id], onDelete: Cascade)
-  translations AttributeOptionTranslation[]
-  values       ProductAttributeOptionValue[]
+  id            String                        @id @default(cuid())
+  attributeId   String                        @map("attribute_id")
+  colorHex      String?                       @map("color_hex") @db.VarChar(9)
+  isActive      Boolean                       @default(true) @map("is_active")
+  displayOrder  Int                           @default(0) @map("display_order")
+  attribute     AttributeDefinition           @relation(fields: [attributeId], references: [id], onDelete: Cascade)
+  translations  AttributeOptionTranslation[]
+  values        ProductAttributeOptionValue[]
   productPrices ProductColorPrice[]
   productImages ProductColorImage[]
 
@@ -454,11 +539,11 @@ model ProductTranslation {
 }
 
 model ProductColorPrice {
-  productId String @map("product_id")
-  optionId String @map("option_id")
-  amount BigInt
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  option AttributeOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  productId String          @map("product_id")
+  optionId  String          @map("option_id")
+  amount    BigInt
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  option    AttributeOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
 
   @@id([productId, optionId])
   @@index([optionId])
@@ -466,13 +551,13 @@ model ProductColorPrice {
 }
 
 model ProductColorImage {
-  productId String @map("product_id")
-  optionId String @map("option_id")
-  mediaId String @map("media_id")
-  isPrimary Boolean @default(false) @map("is_primary")
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  option AttributeOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
-  media MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+  productId String          @map("product_id")
+  optionId  String          @map("option_id")
+  mediaId   String          @map("media_id")
+  isPrimary Boolean         @default(false) @map("is_primary")
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  option    AttributeOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  media     MediaAsset      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
 
   @@id([productId, optionId, mediaId])
   @@index([optionId])

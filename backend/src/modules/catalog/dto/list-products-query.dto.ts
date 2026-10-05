@@ -1,5 +1,7 @@
 import { Transform, Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  IsArray,
   IsBoolean,
   IsEnum,
   IsIn,
@@ -7,7 +9,9 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Matches,
   Max,
+  MaxLength,
   Min,
 } from 'class-validator';
 import { ContentStatus } from '../../../generated/prisma/client';
@@ -49,6 +53,26 @@ export class ListProductsQueryDto {
   )
   @IsBoolean()
   booleanValue?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }: { value: unknown }) =>
+    Array.isArray(value) ? (value as unknown[]) : [value],
+  )
+  @IsArray()
+  @ArrayMaxSize(100)
+  @IsString({ each: true })
+  @MaxLength(300, { each: true })
+  attributeFilters?: string[];
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d+$/)
+  minPrice?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d+$/)
+  maxPrice?: string;
 
   @IsOptional()
   @IsIn(['newest', 'oldest'])

@@ -48,22 +48,28 @@ export class MediaService {
     });
   }
 
-  async upload(file: Express.Multer.File, requireSquareMax1200 = false) {
+  async upload(file: Express.Multer.File, imageProfile?: 'square-max-1200') {
     if (imageMimeTypes.has(file.mimetype))
-      return this.uploadImage(file, requireSquareMax1200);
+      return this.uploadImage(file, imageProfile);
     if (videoMimeTypes.has(file.mimetype)) return this.uploadVideo(file);
     throw new BadRequestException('فرمت فایل پشتیبانی نمیشود.');
   }
 
   async assertNotBlogMedia(ids: string[]) {
     if (!ids.length) return;
-    const references = await this.prisma.blogArticleMedia.count({
-      where: { mediaId: { in: ids } },
+    const references = await this.prisma.mediaAsset.count({
+      where: {
+        id: { in: ids },
+        OR: [
+          { articleMedia: { some: {} } },
+          { bannerDesktop: { isNot: null } },
+          { bannerTablet: { isNot: null } },
+          { bannerMobile: { isNot: null } },
+        ],
+      },
     });
     if (references > 0) {
-      throw new BadRequestException(
-        'تصاویر گالری مقاله در بخش دیگری قابل استفاده نیستند.',
-      );
+      throw new BadRequestException('این تصویر به بخش دیگری تعلق دارد.');
     }
   }
 
@@ -78,6 +84,9 @@ export class MediaService {
       include: {
         productMedia: { select: { productId: true } },
         productCovers: { select: { id: true } },
+        bannerDesktop: { select: { bannerId: true } },
+        bannerTablet: { select: { bannerId: true } },
+        bannerMobile: { select: { bannerId: true } },
         _count: {
           select: {
             articleMedia: true,
@@ -94,6 +103,9 @@ export class MediaService {
           !asset.path ||
           asset._count.articleMedia > 0 ||
           asset._count.sitePageMedia > 0 ||
+          asset.bannerDesktop !== null ||
+          asset.bannerTablet !== null ||
+          asset.bannerMobile !== null ||
           asset._count.categoryImages > 0 ||
           asset.productMedia.some((item) => item.productId !== productId) ||
           asset.productCovers.some((item) => item.id !== productId),
@@ -150,10 +162,14 @@ export class MediaService {
     const media = await this.prisma.mediaAsset.findUnique({
       where: { id },
       include: {
+        bannerDesktop: { select: { bannerId: true } },
+        bannerTablet: { select: { bannerId: true } },
+        bannerMobile: { select: { bannerId: true } },
         _count: {
           select: {
             productMedia: true,
             productCovers: true,
+            productColorImages: true,
             categoryImages: true,
             articleMedia: true,
             sitePageMedia: true,
@@ -168,9 +184,13 @@ export class MediaService {
     if (
       media._count.productMedia > 0 ||
       media._count.productCovers > 0 ||
+      media._count.productColorImages > 0 ||
       media._count.categoryImages > 0 ||
       media._count.articleMedia > 0 ||
-      media._count.sitePageMedia > 0
+      media._count.sitePageMedia > 0 ||
+      media.bannerDesktop !== null ||
+      media.bannerTablet !== null ||
+      media.bannerMobile !== null
     ) {
       if (options.skipIfReferenced) return false;
       throw new BadRequestException(
@@ -186,12 +206,12 @@ export class MediaService {
 
   private async uploadImage(
     file: Express.Multer.File,
-    requireSquareMax1200: boolean,
+    imageProfile?: 'square-max-1200',
   ) {
     if (file.size > this.maxImageBytes) {
       throw new BadRequestException('حجم تصویر بیشتر از حد مجاز است.');
     }
-    if (requireSquareMax1200)
+    if (imageProfile === 'square-max-1200')
       await this.images.assertSquareMax1200(file.buffer);
     const media = await this.prisma.mediaAsset.create({
       data: {
