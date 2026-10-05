@@ -59,6 +59,7 @@ interface DataTableProps<T> extends Pick<
     rowClassName?: (row: T) => string
     draggable?: boolean
     dragDisabled?: boolean
+    isRowDragDisabled?: (row: T) => boolean
     dragHandleLabel?: string
     getRowId?: (row: T) => string
     onReorder?: (data: T[], result: DropResult) => void
@@ -91,6 +92,7 @@ function DataTable<T>({
     rowClassName,
     draggable = false,
     dragDisabled = false,
+    isRowDragDisabled,
     dragHandleLabel = 'تغییر ترتیب',
     getRowId,
     onReorder,
@@ -410,6 +412,12 @@ function DataTable<T>({
                                     table
                                         .getRowModel()
                                         .rows.map((row, index) => {
+                                            const fixedRow =
+                                                isRowDragDisabled?.(
+                                                    row.original,
+                                                ) === true
+                                            const rowDragDisabled =
+                                                dragDisabled || fixedRow
                                             const rowContent = (
                                                 dragHandleProps?: Record<
                                                     string,
@@ -421,29 +429,43 @@ function DataTable<T>({
                                                     {draggable && (
                                                         <Td
                                                             data-label="ترتیب"
-                                                            style={dragging ? { width: dragDimensions.current?.cells[0] } : undefined}
+                                                            style={
+                                                                dragging
+                                                                    ? {
+                                                                          width: dragDimensions
+                                                                              .current
+                                                                              ?.cells[0],
+                                                                      }
+                                                                    : undefined
+                                                            }
                                                         >
-                                                            <button
-                                                                {...dragHandleProps}
-                                                                aria-label={
-                                                                    dragHandleLabel
-                                                                }
-                                                                className="flex size-8 cursor-grab items-center justify-center text-gray-400 disabled:cursor-default disabled:opacity-40"
-                                                                disabled={
-                                                                    dragDisabled
-                                                                }
-                                                                type="button"
-                                                                onClick={(
-                                                                    event,
-                                                                ) =>
-                                                                    event.stopPropagation()
-                                                                }
-                                                            >
-                                                                <MenuIcon
-                                                                    height={20}
-                                                                    width={20}
-                                                                />
-                                                            </button>
+                                                            {!fixedRow && (
+                                                                <button
+                                                                    {...dragHandleProps}
+                                                                    aria-label={
+                                                                        dragHandleLabel
+                                                                    }
+                                                                    className="flex size-8 cursor-grab items-center justify-center text-gray-400 disabled:cursor-default disabled:opacity-40"
+                                                                    disabled={
+                                                                        dragDisabled
+                                                                    }
+                                                                    type="button"
+                                                                    onClick={(
+                                                                        event,
+                                                                    ) =>
+                                                                        event.stopPropagation()
+                                                                    }
+                                                                >
+                                                                    <MenuIcon
+                                                                        height={
+                                                                            20
+                                                                        }
+                                                                        width={
+                                                                            20
+                                                                        }
+                                                                    />
+                                                                </button>
+                                                            )}
                                                         </Td>
                                                     )}
                                                     {row
@@ -477,11 +499,27 @@ function DataTable<T>({
                                                                           : ''
                                                                 }
                                                                 key={cell.id}
-                                                                style={dragging
-                                                                    ? { width: dragDimensions.current?.cells[cell.column.getIndex() + 1] }
-                                                                    : cell.column.id === 'actions'
-                                                                      ? { width: '1%' }
-                                                                      : { width: cell.column.getSize() }}
+                                                                style={
+                                                                    dragging
+                                                                        ? {
+                                                                              width: dragDimensions
+                                                                                  .current
+                                                                                  ?.cells[
+                                                                                  cell.column.getIndex() +
+                                                                                      1
+                                                                              ],
+                                                                          }
+                                                                        : cell
+                                                                                .column
+                                                                                .id ===
+                                                                            'actions'
+                                                                          ? {
+                                                                                width: '1%',
+                                                                            }
+                                                                          : {
+                                                                                width: cell.column.getSize(),
+                                                                            }
+                                                                }
                                                             >
                                                                 {flexRender(
                                                                     cell.column
@@ -521,7 +559,7 @@ function DataTable<T>({
                                                     draggableId={draggableId}
                                                     index={index}
                                                     isDragDisabled={
-                                                        dragDisabled
+                                                        rowDragDisabled
                                                     }
                                                 >
                                                     {(
@@ -533,12 +571,37 @@ function DataTable<T>({
                                                                 draggableProvided.innerRef
                                                             }
                                                             {...draggableProvided.draggableProps}
-                                                            data-drag-row-id={draggableId}
+                                                            data-drag-row-id={
+                                                                draggableId
+                                                            }
                                                             style={{
-                                                                ...draggableProvided.draggableProps.style,
-                                                                width: snapshot.isDragging && dragDimensions.current?.id === draggableId
-                                                                    ? dragDimensions.current.width
-                                                                    : undefined,
+                                                                ...draggableProvided
+                                                                    .draggableProps
+                                                                    .style,
+                                                                transform:
+                                                                    fixedRow
+                                                                        ? 'none'
+                                                                        : draggableProvided
+                                                                              .draggableProps
+                                                                              .style
+                                                                              ?.transform,
+                                                                transition:
+                                                                    fixedRow
+                                                                        ? 'none'
+                                                                        : draggableProvided
+                                                                              .draggableProps
+                                                                              .style
+                                                                              ?.transition,
+                                                                width:
+                                                                    snapshot.isDragging &&
+                                                                    dragDimensions
+                                                                        .current
+                                                                        ?.id ===
+                                                                        draggableId
+                                                                        ? dragDimensions
+                                                                              .current
+                                                                              .width
+                                                                        : undefined,
                                                             }}
                                                             className={classNames(
                                                                 rowClassName?.(
