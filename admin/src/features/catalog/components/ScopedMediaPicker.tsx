@@ -26,6 +26,11 @@ type Props = {
     allowVideos?: boolean
     onUploaded?: (asset: MediaAsset) => Promise<void>
     onAssetUpdated?: (asset: MediaAsset) => void
+    imageProfile?: 'square-max-1200' | 'none'
+    cropImages?: boolean
+    mediaLayout?: 'grid' | 'single'
+    mediaPreviewClassName?: string
+    showMediaTitle?: boolean
 }
 
 export default function ScopedMediaPicker({
@@ -40,6 +45,11 @@ export default function ScopedMediaPicker({
     allowVideos = true,
     onUploaded,
     onAssetUpdated,
+    imageProfile = 'square-max-1200',
+    cropImages = true,
+    mediaLayout = 'grid',
+    mediaPreviewClassName,
+    showMediaTitle = true,
 }: Props) {
     const imageInput = useRef<HTMLInputElement>(null)
     const videoInput = useRef<HTMLInputElement>(null)
@@ -62,7 +72,9 @@ export default function ScopedMediaPicker({
             try {
                 const response = await apiClient.post<ApiResponse<MediaAsset>>(
                     file.type.startsWith('image/')
-                        ? 'media/upload?imageProfile=square-max-1200'
+                        ? imageProfile === 'none'
+                            ? 'media/upload'
+                            : `media/upload?imageProfile=${imageProfile}`
                         : 'media/upload',
                     data,
                     {
@@ -117,7 +129,7 @@ export default function ScopedMediaPicker({
         .map((id) => assets.find((asset) => asset.id === id))
         .filter((asset): asset is MediaAsset => Boolean(asset))
 
-    const uploadVideos = async (files: File[]) => {
+    const uploadFiles = async (files: File[]) => {
         for (const file of files) {
             try {
                 await upload.mutateAsync(file)
@@ -137,8 +149,10 @@ export default function ScopedMediaPicker({
                 type="file"
                 onChange={(event) => {
                     const files = Array.from(event.target.files ?? [])
-                    setBatchSize(files.length)
-                    setImageQueue(files)
+                    if (cropImages) {
+                        setBatchSize(files.length)
+                        setImageQueue(files)
+                    } else if (files.length) void uploadFiles(files)
                     event.target.value = ''
                 }}
             />
@@ -151,7 +165,7 @@ export default function ScopedMediaPicker({
                     type="file"
                     onChange={(event) => {
                         const files = Array.from(event.target.files ?? [])
-                        if (files.length) void uploadVideos(files)
+                        if (files.length) void uploadFiles(files)
                         event.target.value = ''
                     }}
                 />
@@ -205,9 +219,12 @@ export default function ScopedMediaPicker({
             <MediaPicker
                 assets={selectedAssets}
                 emptyText="هنوز فایلی برای این مورد ثبت نشده است."
+                layout={mediaLayout}
                 multiple={multiple}
                 primaryId={primaryId}
+                previewClassName={mediaPreviewClassName}
                 selectedIds={selectedIds}
+                showTitle={showMediaTitle}
                 onChange={onChange}
                 onPrimaryChange={onPrimaryChange}
                 onEdit={setEditingAsset}
@@ -216,7 +233,10 @@ export default function ScopedMediaPicker({
             <CropImageDialog
                 file={imageQueue[0] ?? null}
                 fileCount={batchSize}
-                fileIndex={Math.min(batchSize, batchSize - imageQueue.length + 1)}
+                fileIndex={Math.min(
+                    batchSize,
+                    batchSize - imageQueue.length + 1,
+                )}
                 progress={progress}
                 onClose={() => setImageQueue([])}
                 onSkip={() => setImageQueue((current) => current.slice(1))}

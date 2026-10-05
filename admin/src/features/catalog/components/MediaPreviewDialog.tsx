@@ -24,16 +24,27 @@ export default function MediaPreviewDialog({ asset, onClose }: Props) {
             <FormDialogBody>
                 {asset?.kind === 'IMAGE' && url ? (
                     <img
-                        alt={asset.translations.find((item) => item.altText)?.altText ?? asset.originalFileName ?? ''}
+                        alt={
+                            asset.translations?.find((item) => item.altText)
+                                ?.altText ??
+                            asset.originalFileName ??
+                            ''
+                        }
                         className="mx-auto max-h-[65vh] max-w-full rounded-xl object-contain"
                         src={url}
                     />
                 ) : asset?.kind === 'VIDEO' && url ? (
-                    <video className="mx-auto max-h-[65vh] max-w-full rounded-xl" controls src={url} />
+                    <video
+                        className="mx-auto max-h-[65vh] max-w-full rounded-xl"
+                        controls
+                        src={url}
+                    />
                 ) : null}
             </FormDialogBody>
             <FormDialogActions>
-                <Button type="button" onClick={onClose}>بستن</Button>
+                <Button type="button" onClick={onClose}>
+                    بستن
+                </Button>
             </FormDialogActions>
         </FormDialog>
     )

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import classNames from 'classnames'
 import GalleryIcon from '@/assets/icons/iconsax/linear/gallery.svg?react'
 import Button from '@/components/ui/Button'
 import type { MediaAsset } from '@/features/media'
@@ -14,10 +15,13 @@ type MediaPickerProps = {
     emptyText?: string
     onEdit?: (asset: MediaAsset) => void
     onRemove?: (asset: MediaAsset) => void
+    layout?: 'grid' | 'single'
+    previewClassName?: string
+    showTitle?: boolean
 }
 
 const mediaTitle = (asset: MediaAsset) =>
-    asset.translations.find((item) => item.title)?.title ??
+    asset.translations?.find((item) => item.title)?.title ??
     asset.originalFileName ??
     'رسانه بدون عنوان'
 
@@ -34,6 +38,9 @@ export default function MediaPicker({
     emptyText = 'رسانه ای برای انتخاب وجود ندارد.',
     onEdit,
     onRemove,
+    layout = 'grid',
+    previewClassName,
+    showTitle = true,
 }: MediaPickerProps) {
     const [previewAsset, setPreviewAsset] = useState<MediaAsset | null>(null)
     const remove = (asset: MediaAsset) => {
@@ -48,11 +55,17 @@ export default function MediaPicker({
     return (
         <>
             {assets.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
+                <div className="flex min-h-28 items-center justify-center rounded-xl border border-dashed border-gray-300 p-4 text-center text-sm text-gray-500 dark:border-gray-600 dark:text-gray-400">
                     {emptyText}
                 </div>
             ) : (
-                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div
+                    className={classNames(
+                        layout === 'grid'
+                            ? 'grid gap-3 sm:grid-cols-2 lg:grid-cols-3'
+                            : 'block',
+                    )}
+                >
                     {assets.map((asset) => {
                         const isPrimary = primaryId === asset.id
                         const url = mediaUrl(asset)
@@ -63,7 +76,10 @@ export default function MediaPicker({
                             >
                                 <button
                                     aria-label={`پیش نمایش ${mediaTitle(asset)}`}
-                                    className="relative block aspect-square w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700"
+                                    className={classNames(
+                                        'relative block w-full overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-700',
+                                        previewClassName ?? 'aspect-square',
+                                    )}
                                     type="button"
                                     onClick={() => setPreviewAsset(asset)}
                                 >
@@ -82,17 +98,35 @@ export default function MediaPicker({
                                         </span>
                                     )}
                                 </button>
-                                <p className="mt-2 truncate text-xs font-semibold" title={mediaTitle(asset)}>
-                                    {mediaTitle(asset)}
-                                </p>
+                                {showTitle && (
+                                    <p
+                                        className="mt-2 truncate text-xs font-semibold"
+                                        title={mediaTitle(asset)}
+                                    >
+                                        {mediaTitle(asset)}
+                                    </p>
+                                )}
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    {multiple && onPrimaryChange && !isPrimary && asset.kind === 'IMAGE' && (
-                                        <Button size="xs" type="button" onClick={() => onPrimaryChange(asset.id)}>
-                                            اصلی کردن
-                                        </Button>
-                                    )}
+                                    {multiple &&
+                                        onPrimaryChange &&
+                                        !isPrimary &&
+                                        asset.kind === 'IMAGE' && (
+                                            <Button
+                                                size="xs"
+                                                type="button"
+                                                onClick={() =>
+                                                    onPrimaryChange(asset.id)
+                                                }
+                                            >
+                                                اصلی کردن
+                                            </Button>
+                                        )}
                                     {onEdit && (
-                                        <Button size="xs" type="button" onClick={() => onEdit(asset)}>
+                                        <Button
+                                            size="xs"
+                                            type="button"
+                                            onClick={() => onEdit(asset)}
+                                        >
                                             متن عکس
                                         </Button>
                                     )}
@@ -102,7 +136,9 @@ export default function MediaPicker({
                                         type="button"
                                         onClick={() => remove(asset)}
                                     >
-                                        {onRemove ? 'حذف دائمی' : 'برداشتن تصویر'}
+                                        {onRemove
+                                            ? 'حذف دائمی'
+                                            : 'برداشتن تصویر'}
                                     </Button>
                                 </div>
                             </div>
