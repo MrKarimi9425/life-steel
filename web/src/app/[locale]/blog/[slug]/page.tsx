@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { BlogDetail } from "@/components/blog-detail";
+import { BlogArticleDetail } from "@/features/blog-detail/components/blog-article-detail";
 import { getBlogArticle } from "@/lib/blog";
 import { articleSeo } from "@/lib/blog-seo";
 import { StructuredData } from "@/components/structured-data";
@@ -20,7 +20,7 @@ export default async function BlogArticlePage({ params }: { params: Params }) {
   return (
     <>
       <StructuredData value={articleSeo(article, locale).structuredData} />
-      <BlogDetail article={article} locale={locale} />
+      <BlogArticleDetail article={article} locale={locale} />
     </>
   );
 }
